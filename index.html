@@ -416,7 +416,7 @@
   <!-- CHARACTER / SHOP SCREEN -->
   <section class="screen" id="screen-character">
     <div class="level-header">
-      <div><span class="eyebrow">Character</span><h2 id="charTitle">Name</h2></div>
+      <div><span class="eyebrow">Character</span><h2 id="charTitle">Name</h2><div class="char-weapon" id="charEquippedTitle" style="display:none;"></div></div>
       <button class="btn ghost" id="btnCharBack">← Map</button>
     </div>
     <div class="char-hero">
@@ -449,6 +449,8 @@
     <div class="shop-grid" id="shopCompanions"></div>
     <h3 class="shop-heading">✨ Auras</h3>
     <div class="shop-grid" id="shopAuras"></div>
+    <h3 class="shop-heading">🏷️ Titles</h3>
+    <div class="shop-grid" id="shopTitles"></div>
   </section>
 
   <!-- LEVEL SCREEN -->
@@ -682,26 +684,51 @@ var HATS=[
   {id:'cap',name:'Cap',emoji:'🧢',price:15},
   {id:'party',name:'Party Hat',emoji:'🎉',price:25},
   {id:'hard',name:'Hard Hat',emoji:'⛑️',price:35},
+  {id:'cowboy',name:'Cowboy Hat',emoji:'🤠',price:40},
   {id:'top',name:'Top Hat',emoji:'🎩',price:50},
+  {id:'graduate',name:'Grad Cap',emoji:'🎓',price:55},
+  {id:'flower',name:'Flower Crown',emoji:'🌸',price:65},
   {id:'wizard',name:'Wizard',emoji:'🧙',price:80},
-  {id:'crown',name:'Crown',emoji:'👑',price:150}
+  {id:'halo',name:'Halo',emoji:'😇',price:95},
+  {id:'pumpkin',name:'Pumpkin Cap',emoji:'🎃',price:110},
+  {id:'crown',name:'Crown',emoji:'👑',price:150},
+  {id:'rainbow',name:'Rainbow Crown',emoji:'🌈',price:200}
 ];
 var COMPANIONS=[
   {id:'chick',name:'Chick',emoji:'🐤',price:15},
   {id:'butterfly',name:'Butterfly',emoji:'🦋',price:25},
+  {id:'fish',name:'Fish',emoji:'🐠',price:30},
   {id:'turtle',name:'Turtle',emoji:'🐢',price:35},
   {id:'bee',name:'Bee',emoji:'🐝',price:45},
-  {id:'owl',name:'Owl',emoji:'🦉',price:60},
-  {id:'ghost',name:'Ghost',emoji:'👻',price:90},
-  {id:'dragon',name:'Dragon',emoji:'🐉',price:180}
+  {id:'fox',name:'Fox',emoji:'🦊',price:55},
+  {id:'owl',name:'Owl',emoji:'🦉',price:65},
+  {id:'penguin',name:'Penguin',emoji:'🐧',price:75},
+  {id:'unicorn',name:'Unicorn',emoji:'🦄',price:100},
+  {id:'octopus',name:'Octopus',emoji:'🐙',price:120},
+  {id:'ghost',name:'Ghost',emoji:'👻',price:140},
+  {id:'dragon',name:'Dragon',emoji:'🐉',price:220}
 ];
 var AURAS=[
   {id:'sunny',name:'Sunny',a:'#ffe066',b:'#ffd43b',price:20},
   {id:'ocean',name:'Ocean',a:'#66d9ef',b:'#4dabf7',price:20},
-  {id:'forest',name:'Forest',a:'#8ce99a',b:'#51cf66',price:30},
-  {id:'ember',name:'Ember',a:'#ffa94d',b:'#ff6b6b',price:30},
-  {id:'royal',name:'Royal',a:'#b197fc',b:'#7c5cff',price:60},
-  {id:'golden',name:'Golden',a:'#fff3bf',b:'#f2c94c',price:120}
+  {id:'candy',name:'Candy',a:'#ffb3ec',b:'#ff6fc8',price:30},
+  {id:'forest',name:'Forest',a:'#8ce99a',b:'#51cf66',price:35},
+  {id:'ember',name:'Ember',a:'#ffa94d',b:'#ff6b6b',price:35},
+  {id:'toxic',name:'Toxic',a:'#d9ff5c',b:'#69db3c',price:50},
+  {id:'royal',name:'Royal',a:'#b197fc',b:'#7c5cff',price:70},
+  {id:'shadow',name:'Shadow',a:'#6f5b9e',b:'#241b38',price:90},
+  {id:'golden',name:'Golden',a:'#fff3bf',b:'#f2c94c',price:140},
+  {id:'prism',name:'Prism',a:'#ff6b6b',b:'#4dabf7',price:220}
+];
+var TITLES=[
+  {id:'speedy',name:'Speedy',emoji:'⚡',price:10},
+  {id:'sharp',name:'Sharpshooter',emoji:'🎯',price:20},
+  {id:'steady',name:'Steady Hands',emoji:'🖐️',price:20},
+  {id:'brave',name:'Brave',emoji:'🦁',price:30},
+  {id:'ace',name:'Keyboard Ace',emoji:'🃏',price:50},
+  {id:'legend',name:'Legend',emoji:'🌟',price:90},
+  {id:'unstoppable',name:'Unstoppable',emoji:'💥',price:130},
+  {id:'mythic',name:'Mythic Typist',emoji:'👑',price:200}
 ];
 var FOODS=[
   {id:'snack',name:'Snack',emoji:'🍪',price:8,growth:6},
@@ -958,8 +985,8 @@ el('btnCreate').addEventListener('click',function(){
     name:name.slice(0,12), avatar:pickedAvatar, colorHex:pickedColor.hex,
     subProgress:{}, badges:[], gearWorlds:[], fightsWon:0, flawlessWins:0,
     totalCharsTyped:0, gold:0, growth:0,
-    ownedHats:[], ownedCompanions:[], ownedAuras:[],
-    equippedHat:null, equippedCompanion:null, equippedAura:null, difficulty:'normal',
+    ownedHats:[], ownedCompanions:[], ownedAuras:[], ownedTitles:[],
+    equippedHat:null, equippedCompanion:null, equippedAura:null, equippedTitle:null, difficulty:'normal',
     createdAt:Date.now()
   };
   DATA.players.push(p); DATA.lastPlayerId=p.id; saveData(); goToTutorial();
@@ -1056,6 +1083,12 @@ function renderCharacterScreen(){
   var p=getCurrentPlayer(); if(!p) return;
   var rank=rankFor(p);
   el('charTitle').textContent=p.name;
+  var titleEl=el('charEquippedTitle');
+  if(p.equippedTitle){
+    var t=TITLES.find(function(x){return x.id===p.equippedTitle;});
+    if(t){ titleEl.style.display='block'; titleEl.innerHTML=t.emoji+' <b>'+escapeHtml(t.name)+'</b>'; }
+    else titleEl.style.display='none';
+  } else titleEl.style.display='none';
   el('charRank').textContent=rank.title;
   el('charRank').style.background=rank.frame;
   el('charCard').style.borderColor=rank.frame;
@@ -1082,6 +1115,7 @@ function renderCharacterScreen(){
   renderShop('hat',HATS,'shopHats');
   renderShop('companion',COMPANIONS,'shopCompanions');
   renderShop('aura',AURAS,'shopAuras');
+  renderShop('title',TITLES,'shopTitles');
   renderFoodShop();
 }
 function renderFoodShop(){
@@ -1125,6 +1159,7 @@ function showEvolveBanner(stage){
 function shopKeys(category){
   if(category==='hat') return {owned:'ownedHats',equip:'equippedHat'};
   if(category==='companion') return {owned:'ownedCompanions',equip:'equippedCompanion'};
+  if(category==='title') return {owned:'ownedTitles',equip:'equippedTitle'};
   return {owned:'ownedAuras',equip:'equippedAura'};
 }
 function renderShop(category,list,containerId){
@@ -1154,7 +1189,7 @@ function renderShop(category,list,containerId){
 function buyOrEquip(category,itemId){
   var player=getCurrentPlayer();
   var keys=shopKeys(category);
-  var list = category==='hat'?HATS:category==='companion'?COMPANIONS:AURAS;
+  var list = category==='hat'?HATS:category==='companion'?COMPANIONS:category==='title'?TITLES:AURAS;
   var item=list.find(function(i){return i.id===itemId;});
   player[keys.owned]=player[keys.owned]||[];
   var owned=player[keys.owned].indexOf(itemId)!==-1;
