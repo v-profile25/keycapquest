@@ -1059,7 +1059,14 @@ var AVATAR_SLUGS={
    assets/characters/<slug>/tier-N.png (N = 1..10, matching Tier X/10
    shown in the UI). A missing entry falls back to the emoji + SVG
    effect-layer portrait automatically -- nothing has to ship at once. */
-var CHARACTER_ART={};
+var CHARACTER_ART={
+  dog:[
+    'assets/characters/dog/tier-1.webp','assets/characters/dog/tier-2.webp','assets/characters/dog/tier-3.webp',
+    'assets/characters/dog/tier-4.webp','assets/characters/dog/tier-5.webp','assets/characters/dog/tier-6.webp',
+    'assets/characters/dog/tier-7.webp','assets/characters/dog/tier-8.webp','assets/characters/dog/tier-9.webp',
+    'assets/characters/dog/tier-10.webp'
+  ]
+};
 function artFor(player,tierIndex){
   var slug=AVATAR_SLUGS[player.avatar];
   var forAvatar=slug && CHARACTER_ART[slug];
