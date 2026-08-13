@@ -359,6 +359,7 @@
   .diff-card .dname{font-family:var(--font-display);font-weight:800;margin:6px 0 4px;font-size:.95rem;}
   .diff-card .ddesc{font-size:.7rem;color:var(--ink-soft);line-height:1.4;}
   .diff-card.selected{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);}
+  .diff-card .dreward{margin-top:8px;font-family:var(--font-mono);font-weight:700;font-size:.68rem;color:var(--f-ring);background:color-mix(in srgb, var(--f-ring) 14%, var(--surface));border-radius:999px;padding:3px 8px;display:inline-block;}
   .aura-swatch{width:1.9rem;height:1.9rem;border-radius:50%;margin:0 auto;border:2px solid var(--border);}
 </style>
 </head>
@@ -777,7 +778,7 @@
     <button class="close-x" id="btnCloseDifficulty">✕</button>
     <span class="eyebrow">Settings</span>
     <h2>Difficulty</h2>
-    <p style="font-size:.85rem;">Changes how fast boss fights push back and how hard star targets are. Practice and Skirmish stay the same.</p>
+    <p style="font-size:.85rem;">Changes how fast boss fights push back, how hard star targets are, and how much gold &amp; gems every stage pays out — Easy is gentler but pays far less, so you can't out-grind the campaign on Easy alone.</p>
     <div class="diff-row" id="diffRow"></div>
     <div class="btnrow" style="justify-content:center;margin-top:18px;"><button class="btn ghost" id="btnCloseDifficulty2">Close</button></div>
   </div>
@@ -1087,9 +1088,9 @@ var STAGE_META={
 var STAGE_ORDER=['practice','skirmish','boss'];
 
 var DIFFICULTIES=[
-  {id:'easy',name:'Easy',emoji:'🌱',wpmMult:0.75,bossInterval:1000,bossPush:3,playerPush:4,mistakePenalty:5,desc:'Boss types slowly. Good for getting started.'},
-  {id:'normal',name:'Normal',emoji:'⚔️',wpmMult:1,bossInterval:700,bossPush:4,playerPush:4,mistakePenalty:7,desc:'A fair fight — stay accurate to keep the lead.'},
-  {id:'hard',name:'Hard',emoji:'🔥',wpmMult:1.3,bossInterval:480,bossPush:5,playerPush:4,mistakePenalty:9,desc:'The boss types fast. Mistakes cost you dearly.'}
+  {id:'easy',name:'Easy',emoji:'🌱',wpmMult:0.75,bossInterval:1000,bossPush:3,playerPush:4,mistakePenalty:5,rewardMult:0.35,desc:'Boss types slowly. Good for getting started.'},
+  {id:'normal',name:'Normal',emoji:'⚔️',wpmMult:1,bossInterval:700,bossPush:4,playerPush:4,mistakePenalty:7,rewardMult:1,desc:'A fair fight — stay accurate to keep the lead.'},
+  {id:'hard',name:'Hard',emoji:'🔥',wpmMult:1.3,bossInterval:480,bossPush:5,playerPush:4,mistakePenalty:9,rewardMult:1.8,desc:'The boss types fast. Mistakes cost you dearly.'}
 ];
 function currentDifficulty(player){
   var id=(player&&player.difficulty)||'normal';
@@ -2537,6 +2538,7 @@ function finishLevel(kind){
   else { stars=computeStars(playState.targetWpm,wpm,acc); passed = stars>=1; }
 
   var clearMult=goldMultiplier(prev.timesCleared);
+  var rewardMult=playState.diff.rewardMult;
 
   world[playState.subKind] = {
     stars: Math.max(prev.stars, stars), bestWpm: Math.max(prev.bestWpm, wpm), bestAcc: Math.max(prev.bestAcc, acc),
@@ -2569,16 +2571,16 @@ function finishLevel(kind){
   var goldEarned=0;
   if(kind==='win'){
     var base = playState.subKind==='boss'?25:10;
-    goldEarned = Math.max(1, Math.round((base + stars*(playState.subKind==='boss'?5:2)) * clearMult));
+    goldEarned = Math.max(1, Math.round((base + stars*(playState.subKind==='boss'?5:2)) * clearMult * rewardMult));
     if(newGear) goldEarned+=25;
   } else if(kind==='complete' && passed){
-    goldEarned = Math.max(1, Math.round(2 * clearMult));
+    goldEarned = Math.max(1, Math.round(2 * clearMult * rewardMult));
   }
   player.gold=(player.gold||0)+goldEarned;
 
   var gemsEarned=0;
   if(playState.subKind==='boss' && kind==='win'){
-    gemsEarned=Math.max(1,Math.round((3+stars)*clearMult));
+    gemsEarned=Math.max(1,Math.round((3+stars)*clearMult*rewardMult));
     player.gems=(player.gems||0)+gemsEarned;
   }
 
@@ -2606,7 +2608,11 @@ function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarn
   for(var i=0;i<3;i++){ var s=document.createElement('span'); s.className='star'+(i<stars?' on':''); s.textContent='★'; starsRow.appendChild(s); }
   el('resWpm').textContent=wpm; el('resAcc').textContent=acc+'%'; el('resTime').textContent=timeSec+'s';
   el('resGold').textContent='+'+goldEarned;
-  el('resGoldNote').textContent = (clearMult<1) ? ('Gold ×'+Math.round(clearMult*100)+'%') : 'Gold';
+  var diff=playState.diff;
+  var goldNotes=[];
+  if(diff.rewardMult!==1) goldNotes.push(diff.name+' ×'+Math.round(diff.rewardMult*100)+'%');
+  if(clearMult<1) goldNotes.push('Replay ×'+Math.round(clearMult*100)+'%');
+  el('resGoldNote').textContent = goldNotes.length ? ('Gold '+goldNotes.join(' · ')) : 'Gold';
 
   var fingerNote=el('resFingerNote');
   var weak=weakestFinger(playState.fingerStats,4);
@@ -2754,7 +2760,8 @@ function renderDifficultyOverlay(){
   DIFFICULTIES.forEach(function(d){
     var card=document.createElement('div');
     card.className='diff-card'+(d.id===current?' selected':'');
-    card.innerHTML='<div class="dicon">'+d.emoji+'</div><div class="dname">'+escapeHtml(d.name)+'</div><div class="ddesc">'+escapeHtml(d.desc)+'</div>';
+    card.innerHTML='<div class="dicon">'+d.emoji+'</div><div class="dname">'+escapeHtml(d.name)+'</div><div class="ddesc">'+escapeHtml(d.desc)+'</div>'+
+      '<div class="dreward">🪙💎 ×'+Math.round(d.rewardMult*100)+'% rewards</div>';
     card.addEventListener('click',function(){ setDifficulty(d.id); });
     row.appendChild(card);
   });
