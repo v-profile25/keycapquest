@@ -315,6 +315,9 @@
   .char-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
   .char-stats div{display:flex;flex-direction:column;font-family:var(--font-mono);}
   .char-stats b{font-size:1.2rem;} .char-stats span{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);}
+  .combat-power-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .combat-power-row div{display:flex;flex-direction:column;align-items:center;font-family:var(--font-mono);}
+  .combat-power-row b{font-size:1.05rem;color:var(--good);} .combat-power-row span{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
   .char-weapon{font-size:.9rem;color:var(--ink-soft);}
   .char-weapon b{color:var(--ink);}
   .growth-panel{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0 4px;box-shadow:var(--key-shadow);}
@@ -472,6 +475,11 @@
     <div class="growth-panel" id="growthPanel">
       <div class="growth-head"><span id="growthStageTitle">Pup</span><span id="growthMeterText">0 / 40</span></div>
       <div class="growth-bar"><div class="growth-fill" id="growthFill"></div></div>
+      <div class="combat-power-row" id="combatPowerRow">
+        <div><b id="powerHp">5</b><span>❤️ Max HP</span></div>
+        <div><b id="powerPush">+0</b><span>⚔️ Power</span></div>
+        <div><b id="powerResist">0%</b><span>🛡️ Resist</span></div>
+      </div>
       <div id="pathChooseBanner" style="display:none;margin-top:12px;text-align:center;">
         <p class="hero-sub" style="margin-bottom:8px;">Your character is ready to evolve!</p>
         <button class="btn big" id="btnChoosePath">✨ Choose Your Path</button>
@@ -619,6 +627,7 @@
       <div>Target WPM<br><b id="pvTarget">8</b></div>
       <div>Best Stars<br><b id="pvStars">–</b></div>
       <div>Best WPM<br><b id="pvBestWpm">–</b></div>
+      <div id="pvPowerWrap" style="display:none;">Enemy Power<br><b id="pvPower">×1.0</b></div>
     </div>
     <div id="pvTypeInfo" style="display:none;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin:10px 0;font-size:.82rem;line-height:1.7;"></div>
     <div class="btnrow" style="justify-content:center;">
@@ -1022,6 +1031,22 @@ var DIFFICULTIES=[
 function currentDifficulty(player){
   var id=(player&&player.difficulty)||'normal';
   return DIFFICULTIES.find(function(d){return d.id===id;})||DIFFICULTIES[1];
+}
+/* Combat scales on two axes: how strong YOUR character has grown
+   (feed it -> more HP, more push per hit, more resistance to mistakes)
+   versus how strong the WORLD's enemies get as the campaign goes on.
+   Keeping pace with feeding keeps fights winnable; falling behind
+   makes late-game bosses genuinely punishing. */
+function playerCombatPower(player){
+  var stage=stageFor(player);
+  return {
+    hpBonus: stage.index,
+    pushBonus: Math.floor(stage.index/2),
+    mistakeResist: Math.min(0.4, stage.index*0.045)
+  };
+}
+function worldPowerMult(worldId){
+  return 1 + Math.max(0,worldId-1)*0.02;
 }
 
 /* Gold payout shrinks fast on repeat clears of the same stage, so grinding
@@ -1589,6 +1614,11 @@ function renderCharacterScreen(){
   el('charWeapon').textContent=w.emoji+' '+w.name;
   renderPortrait(el('charPortrait'),p,'hero');
 
+  var power=playerCombatPower(p);
+  el('powerHp').textContent=5+power.hpBonus;
+  el('powerPush').textContent='+'+power.pushBonus;
+  el('powerResist').textContent=Math.round(power.mistakeResist*100)+'%';
+
   var stage=stageFor(p);
   var g=p.growth||0;
   if(stage.pendingChoice){
@@ -1767,6 +1797,13 @@ function openPreview(worldId,subKind){
   el('pvTarget').textContent = effectiveTargetWpm(level,subKind,player);
   el('pvStars').textContent = entry?('★'.repeat(entry.stars)+'☆'.repeat(3-entry.stars)):'—';
   el('pvBestWpm').textContent = entry?entry.bestWpm:'—';
+  var powerWrap=el('pvPowerWrap');
+  if(subKind==='boss' || subKind==='skirmish'){
+    powerWrap.style.display='block';
+    el('pvPower').textContent='×'+worldPowerMult(worldId).toFixed(2);
+  } else {
+    powerWrap.style.display='none';
+  }
 
   var typeInfo=el('pvTypeInfo');
   if(subKind==='boss' && enemy && enemy.element!=null){
@@ -1811,7 +1848,9 @@ function startLevel(worldId,subKind){
   var shield=equippedShield(player);
   var diff=currentDifficulty(player);
   var enemyDef = subKind==='skirmish'?level.miniBoss:(subKind==='boss'?level.boss:null);
-  var maxHp = subKind==='boss'?7:5;
+  var power=playerCombatPower(player);
+  var worldMult=combat?worldPowerMult(worldId):1;
+  var maxHp = (subKind==='boss'?7:5) + power.hpBonus;
   var bossElem = (isBoss && enemyDef && enemyDef.element!=null) ? enemyDef.element : null;
   var offenseMult = 1 + 0.3*matchup(weapon.element,bossElem);
   var defenseMult = 1 - 0.3*matchup(shield?shield.element:null,bossElem);
@@ -1821,10 +1860,11 @@ function startLevel(worldId,subKind){
     text:text, idx:0, correct:0, incorrect:0, combo:0, maxCombo:0,
     startTime:null, timerHandle:null, tugInterval:null, spans:[],
     playerHp: (combat&&!isBoss)?maxHp:0, playerMaxHp: (combat&&!isBoss)?maxHp:0,
-    enemyHp: (combat&&!isBoss)?text.length:0, enemyMaxHp: (combat&&!isBoss)?text.length:0,
+    enemyHp: (combat&&!isBoss)?Math.round(text.length*worldMult):0, enemyMaxHp: (combat&&!isBoss)?Math.round(text.length*worldMult):0,
     tug: 50,
     weaponEmoji: weapon.emoji,
     offenseMult: offenseMult, defenseMult: defenseMult,
+    power: power, worldMult: worldMult,
     targetWpm: effectiveTargetWpm(level,subKind,player)
   };
 
@@ -1904,7 +1944,10 @@ function updateHud(){
 function updateArena(){
   if(!playState.combat) return;
   if(playState.subKind==='boss'){ updateTugMeter(); return; }
-  el('playerHpRow').textContent = '❤️'.repeat(Math.max(0,playState.playerHp)) + '🤍'.repeat(playState.playerMaxHp-Math.max(0,playState.playerHp));
+  var hp=Math.max(0,playState.playerHp), maxHp=playState.playerMaxHp;
+  el('playerHpRow').textContent = maxHp<=8
+    ? ('❤️'.repeat(hp) + '🤍'.repeat(maxHp-hp))
+    : ('❤️ '+hp+'/'+maxHp);
   var pct = Math.max(0, playState.enemyHp/playState.enemyMaxHp*100);
   el('enemyHpFill').style.width=pct+'%';
 }
@@ -1916,7 +1959,7 @@ function startBossTick(){
   if(playState.tugInterval) clearInterval(playState.tugInterval);
   playState.tugInterval=setInterval(function(){
     if(!playState || playState.subKind!=='boss') return;
-    var tick=Math.max(1,Math.round(playState.diff.bossPush*playState.defenseMult));
+    var tick=Math.max(1,Math.round(playState.diff.bossPush*playState.worldMult*playState.defenseMult*(1-playState.power.mistakeResist)));
     playState.tug=Math.max(0,playState.tug-tick);
     updateTugMeter();
     var enemyEl=el('enemyAvatarDisplay');
@@ -2039,13 +2082,13 @@ function onKeydown(e){
     if(playState.combat){
       var bonus=Math.min(4,Math.floor(playState.combo/5));
       if(playState.subKind==='boss'){
-        var push=Math.max(1,Math.round((playState.diff.playerPush+bonus)*playState.offenseMult));
+        var push=Math.max(1,Math.round((playState.diff.playerPush+bonus+playState.power.pushBonus)*playState.offenseMult));
         playState.tug=Math.min(100,playState.tug+push);
         spawnProjectile(push,bonus>0); updateArena();
         ensureMoreBossText();
         if(playState.tug>=100){ finishLevel('win'); return; }
       } else {
-        var dmg=1+bonus;
+        var dmg=1+bonus+playState.power.pushBonus;
         playState.enemyHp=Math.max(0,playState.enemyHp-dmg);
         spawnProjectile(dmg,bonus>0); updateArena();
         if(playState.enemyHp<=0 || playState.idx>=playState.text.length){
@@ -2065,13 +2108,14 @@ function onKeydown(e){
 
     if(playState.combat){
       if(playState.subKind==='boss'){
-        var penalty=Math.max(1,Math.round(playState.diff.mistakePenalty*playState.defenseMult));
+        var penalty=Math.max(1,Math.round(playState.diff.mistakePenalty*playState.worldMult*playState.defenseMult*(1-playState.power.mistakeResist)));
         playState.tug=Math.max(0,playState.tug-penalty);
         spawnPlayerHit(penalty); updateArena();
         if(playState.tug<=0){ finishLevel('loss'); return; }
       } else {
-        playState.playerHp=Math.max(0,playState.playerHp-1);
-        spawnPlayerHit(1); updateArena();
+        var hpCost=Math.max(1,Math.round(playState.worldMult*(1-playState.power.mistakeResist)));
+        playState.playerHp=Math.max(0,playState.playerHp-hpCost);
+        spawnPlayerHit(hpCost); updateArena();
         if(playState.playerHp<=0){ updateHud(); finishLevel('loss'); return; }
       }
     }
