@@ -76,22 +76,27 @@
   .portrait-aura{position:absolute;inset:-16%;border-radius:50%;background:radial-gradient(circle, var(--aura-a,#7c5cff), var(--aura-b,#4b3aa8));opacity:.6;filter:blur(3px);z-index:0;}
   .portrait-aura.boost{opacity:.85;filter:blur(5px);inset:-20%;}
   .portrait-avatar{position:relative;z-index:2;width:100%;height:100%;border-radius:50%;background:var(--surface-2);border-style:solid;border-color:var(--frame-color,var(--border));display:flex;align-items:center;justify-content:center;box-shadow:var(--key-shadow);transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+  .portrait-art{position:relative;z-index:2;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center 30%;background:var(--surface-2);border-style:solid;border-color:var(--frame-color,var(--border));box-shadow:var(--key-shadow);display:block;}
   .portrait-hat{position:absolute;left:50%;transform:translateX(-50%) rotate(-6deg);z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
   .portrait-companion{position:absolute;z-index:3;background:var(--surface-2);border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;}
   .portrait-sm{width:30px;height:30px;}
   .portrait-sm .portrait-avatar{font-size:1rem;border-width:2px;}
+  .portrait-sm .portrait-art{border-width:2px;}
   .portrait-sm .portrait-hat{font-size:.85rem;top:-32%;}
   .portrait-sm .portrait-companion{display:none;}
   .portrait-pf{width:62px;height:62px;}
   .portrait-pf .portrait-avatar{font-size:1.7rem;border-width:3px;}
+  .portrait-pf .portrait-art{border-width:3px;}
   .portrait-pf .portrait-hat{font-size:1.3rem;top:-24%;}
   .portrait-pf .portrait-companion{display:none;}
   .portrait-md{width:80px;height:80px;}
   .portrait-md .portrait-avatar{font-size:2.4rem;border-width:3px;}
+  .portrait-md .portrait-art{border-width:3px;}
   .portrait-md .portrait-hat{font-size:1.7rem;top:-20%;}
   .portrait-md .portrait-companion{width:26px;height:26px;font-size:1rem;bottom:-6%;right:-8%;}
   .portrait-lg{width:150px;height:150px;}
   .portrait-lg .portrait-avatar{font-size:4.4rem;border-width:5px;}
+  .portrait-lg .portrait-art{border-width:5px;}
   .portrait-lg .portrait-hat{font-size:3rem;top:-16%;}
   .portrait-lg .portrait-companion{width:46px;height:46px;font-size:1.8rem;bottom:-4%;right:-6%;}
   /* growth-stage accents (pup / grown / mecha) */
@@ -1046,6 +1051,20 @@ var AVATAR_THEMES={
   '🐰':['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Storm Rabbit','Thunder Hare','Moon Rabbit','Celestial Hare','Rabbit Dragonlord','Mecha Hare Sovereign'],
   '🐻':['Bear Cub','Young Bear','Curious Bear','Fierce Bear','Storm Bear','Thunder Bear','Bear Sage','Grizzly Titan','Bear Dragonlord','Mecha Bear Colossus']
 };
+var AVATAR_SLUGS={
+  '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
+  '🦄':'unicorn','🐨':'koala','🐶':'dog','🐱':'cat','🐰':'rabbit','🐻':'bear'
+};
+/* Painted character art, filled in as illustrations are added under
+   assets/characters/<slug>/tier-N.png (N = 1..10, matching Tier X/10
+   shown in the UI). A missing entry falls back to the emoji + SVG
+   effect-layer portrait automatically -- nothing has to ship at once. */
+var CHARACTER_ART={};
+function artFor(player,tierIndex){
+  var slug=AVATAR_SLUGS[player.avatar];
+  var forAvatar=slug && CHARACTER_ART[slug];
+  return forAvatar ? forAvatar[tierIndex] : null;
+}
 function tierIndexFor(growth){
   var g=growth||0, idx=0;
   for(var i=0;i<GROWTH_TIERS.length;i++){ if(g>=GROWTH_TIERS[i].min) idx=i; }
@@ -1094,13 +1113,24 @@ function renderPortrait(container,player,size){
   var aura=getAura(player);
   var stage=stageFor(player);
   var elemColor=elementTintColor(player);
+  var art=artFor(player,stage.index);
   var hat = player.equippedHat ? HATS.find(function(h){return h.id===player.equippedHat;}) : null;
   var comp = player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
-  container.className='portrait portrait-'+size+' tier-'+stage.index;
+  container.className='portrait portrait-'+size+' tier-'+stage.index+(art?' has-art':'');
   container.style.setProperty('--aura-a',aura.a);
   container.style.setProperty('--aura-b',aura.b);
   container.style.setProperty('--frame-color',rank.frame);
   container.style.setProperty('--elem-color',elemColor);
+
+  if(art){
+    container.innerHTML =
+      '<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>'+
+      '<img class="portrait-art" src="'+art+'" alt="'+escapeHtml(stage.title)+'" loading="lazy">'+
+      (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
+      (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
+    return;
+  }
+
   var decorHtml='';
   if(stage.decor[0]) decorHtml+='<div class="portrait-spark portrait-spark-a">'+stage.decor[0]+'</div>';
   if(stage.decor[1]) decorHtml+='<div class="portrait-spark portrait-spark-b">'+stage.decor[1]+'</div>';
