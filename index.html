@@ -74,6 +74,7 @@
   /* ---------- portrait (reusable character render) ---------- */
   .portrait{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
   .portrait-aura{position:absolute;inset:-16%;border-radius:50%;background:radial-gradient(circle, var(--aura-a,#7c5cff), var(--aura-b,#4b3aa8));opacity:.6;filter:blur(3px);z-index:0;}
+  .portrait-aura.boost{opacity:.85;filter:blur(5px);inset:-20%;}
   .portrait-avatar{position:relative;z-index:2;width:100%;height:100%;border-radius:50%;background:var(--surface-2);border-style:solid;border-color:var(--frame-color,var(--border));display:flex;align-items:center;justify-content:center;box-shadow:var(--key-shadow);transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
   .portrait-hat{position:absolute;left:50%;transform:translateX(-50%) rotate(-6deg);z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
   .portrait-companion{position:absolute;z-index:3;background:var(--surface-2);border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;}
@@ -817,15 +818,52 @@ function ensureSub(player,worldId){
   return player.subProgress[worldId];
 }
 
-/* ---------- growth / evolution ---------- */
-var GROWTH_STAGES=[
-  {id:'pup',title:'Pup',min:0,max:39,scale:.8},
-  {id:'grown',title:'Grown',min:40,max:119,scale:1},
-  {id:'mecha',title:'Mecha Warrior',min:120,max:Infinity,scale:1.18}
+/* ---------- growth / evolution ----------
+   10 tiers shared by every avatar for scale/decor/ring, but each avatar
+   gets its own themed title track so "Fox Kit" grows into "Mecha Kitsune
+   Prime" while "Bear Cub" grows into "Mecha Bear Colossus". */
+var GROWTH_TIERS=[
+  {min:0,   scale:.72, decor:[]},
+  {min:30,  scale:.80, decor:['✨']},
+  {min:70,  scale:.88, decor:['✨']},
+  {min:120, scale:.96, decor:['⭐']},
+  {min:180, scale:1.03, decor:['⭐','🔥']},
+  {min:260, scale:1.09, decor:['🔥'], ring:'boost'},
+  {min:360, scale:1.15, decor:['🔥','⚡'], ring:'boost'},
+  {min:480, scale:1.21, decor:['🐉'], ring:'boost'},
+  {min:620, scale:1.29, decor:['🐉','⚙️'], ring:'mecha'},
+  {min:780, scale:1.40, decor:['⚙️','⚡'], ring:'mecha'}
 ];
+var AVATAR_THEMES={
+  '🦊':['Fox Kit','Fox Pup','Sly Fox','Swift Fox','Ember Fox','Blaze Vixen','Nine-Tail Spirit','Dawn Kitsune','Dragonfox','Mecha Kitsune Prime'],
+  '🐯':['Tiger Cub','Young Tiger','Bold Tiger','Storm Tiger','Thunder Tiger','White Tiger Spirit','Sabertooth Titan','Inferno Tiger','Dragon-Fang Tiger','Mecha Tiger Overlord'],
+  '🐼':['Panda Pup','Panda Cub','Roly-Poly Panda','Bamboo Guardian','Jade Panda','Storm Panda','Panda Sage','Celestial Panda','Panda Dragonlord','Mecha Panda Titan'],
+  '🦁':['Lion Cub','Young Lion','Maned Lion','Proud Lion','Golden Lion','Sun Lion','Lion King','Solar Lion Spirit','Dragon-Maned Lion','Mecha Lion Emperor'],
+  '🐸':['Tadpole','Froglet','Leaping Frog','Swamp Hopper','Storm Frog','Thunder Toad','Frog Sage','Poison Dart Champion','Hydra Frog','Mecha Bullfrog Colossus'],
+  '🐵':['Baby Monkey','Young Monkey','Nimble Monkey','Trickster Monkey','Jungle Monkey','Storm Monkey','Monkey King','Celestial Monkey','Monkey Dragonlord','Mecha Monkey Sovereign'],
+  '🦄':['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn','Comet Unicorn','Unicorn Sage','Astral Unicorn','Unicorn Dragonlord','Mecha Unicorn Celestial'],
+  '🐨':['Koala Joey','Young Koala','Sleepy Koala','Eucalyptus Koala','Cloud Koala','Storm Koala','Koala Sage','Thunder Koala','Koala Dragonlord','Mecha Koala Titan'],
+  '🐶':['Puppy','Young Pup','Loyal Hound','Brave Dog','Storm Hound','Thunder Wolfhound','Alpha Dog','Two-Headed Hound','Hydra Hound','Mecha War-Dog Prime'],
+  '🐱':['Kitten','Young Cat','Curious Cat','Shadow Cat','Storm Cat','Thunder Cat','Cat Sage','Nine-Lives Spirit','Cat Dragonlord','Mecha Cat Overlord'],
+  '🐰':['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Storm Rabbit','Thunder Hare','Moon Rabbit','Celestial Hare','Rabbit Dragonlord','Mecha Hare Sovereign'],
+  '🐻':['Bear Cub','Young Bear','Curious Bear','Fierce Bear','Storm Bear','Thunder Bear','Bear Sage','Grizzly Titan','Bear Dragonlord','Mecha Bear Colossus']
+};
+function tierIndexFor(growth){
+  var g=growth||0, idx=0;
+  for(var i=0;i<GROWTH_TIERS.length;i++){ if(g>=GROWTH_TIERS[i].min) idx=i; }
+  return idx;
+}
 function stageFor(player){
-  var g=player.growth||0;
-  return GROWTH_STAGES.find(function(s){return g>=s.min && g<=s.max;}) || GROWTH_STAGES[0];
+  var idx=tierIndexFor(player.growth);
+  var tier=GROWTH_TIERS[idx];
+  var theme=AVATAR_THEMES[player.avatar]||AVATAR_THEMES[AVATARS[0]];
+  return {
+    index:idx,
+    min:tier.min,
+    max: idx<GROWTH_TIERS.length-1 ? GROWTH_TIERS[idx+1].min-1 : Infinity,
+    scale:tier.scale, decor:tier.decor||[], ring:tier.ring||null,
+    title:theme[idx]
+  };
 }
 
 /* ---------- portrait rendering ---------- */
@@ -841,17 +879,20 @@ function renderPortrait(container,player,size){
   var stage=stageFor(player);
   var hat = player.equippedHat ? HATS.find(function(h){return h.id===player.equippedHat;}) : null;
   var comp = player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
-  container.className='portrait portrait-'+size+' stage-'+stage.id;
+  container.className='portrait portrait-'+size+' tier-'+stage.index;
   container.style.setProperty('--aura-a',aura.a);
   container.style.setProperty('--aura-b',aura.b);
   container.style.setProperty('--frame-color',rank.frame);
+  var decorHtml='';
+  if(stage.decor[0]) decorHtml+='<div class="portrait-spark portrait-spark-a">'+stage.decor[0]+'</div>';
+  if(stage.decor[1]) decorHtml+='<div class="portrait-spark portrait-spark-b">'+stage.decor[1]+'</div>';
   container.innerHTML =
-    '<div class="portrait-aura"></div>'+
-    (stage.id==='mecha'?'<div class="portrait-mecha-ring"></div>':'')+
+    '<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>'+
+    (stage.ring==='mecha'?'<div class="portrait-mecha-ring"></div>':'')+
     (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
     '<div class="portrait-avatar" style="transform:scale('+stage.scale+')">'+player.avatar+'</div>'+
-    (stage.id==='mecha'?'<div class="portrait-spark portrait-spark-a">⚡</div><div class="portrait-spark portrait-spark-b">⚙️</div>':'')+
-    (stage.id==='pup'?'<div class="portrait-cute">✨</div>':'')+
+    decorHtml+
+    (stage.index===0?'<div class="portrait-cute">✨</div>':'')+
     (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
 }
 
@@ -1101,12 +1142,11 @@ function renderCharacterScreen(){
 
   var stage=stageFor(p);
   var g=p.growth||0;
-  var stageIdx=GROWTH_STAGES.indexOf(stage);
-  var next=GROWTH_STAGES[stageIdx+1];
-  el('growthStageTitle').textContent=stage.title;
-  if(next){
-    el('growthMeterText').textContent=g+' / '+next.min;
-    el('growthFill').style.width=Math.max(4,Math.min(100,Math.round((g-stage.min)/(next.min-stage.min)*100)))+'%';
+  var nextTier=GROWTH_TIERS[stage.index+1];
+  el('growthStageTitle').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
+  if(nextTier){
+    el('growthMeterText').textContent=g+' / '+nextTier.min;
+    el('growthFill').style.width=Math.max(4,Math.min(100,Math.round((g-stage.min)/(nextTier.min-stage.min)*100)))+'%';
   } else {
     el('growthMeterText').textContent=g+' 🏆 Max';
     el('growthFill').style.width='100%';
@@ -1143,7 +1183,7 @@ function feedPlayer(item){
   saveData();
   refreshTopbar();
   renderCharacterScreen();
-  if(after.id!==before.id) showEvolveBanner(after);
+  if(after.index!==before.index) showEvolveBanner(after);
 }
 function showEvolveBanner(stage){
   var host=el('growthPanel'); if(!host) return;
