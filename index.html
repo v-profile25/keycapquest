@@ -468,6 +468,13 @@
     <div class="growth-panel" id="growthPanel">
       <div class="growth-head"><span id="growthStageTitle">Pup</span><span id="growthMeterText">0 / 40</span></div>
       <div class="growth-bar"><div class="growth-fill" id="growthFill"></div></div>
+      <div id="pathChooseBanner" style="display:none;margin-top:12px;text-align:center;">
+        <p class="hero-sub" style="margin-bottom:8px;">Your character is ready to evolve!</p>
+        <button class="btn big" id="btnChoosePath">✨ Choose Your Path</button>
+      </div>
+      <div id="pathCurrentRow" style="display:none;margin-top:10px;text-align:center;">
+        <button class="btn ghost" id="btnChangePath" style="font-size:.72rem;padding:6px 14px;"></button>
+      </div>
     </div>
     <h3 class="shop-heading">🍖 Feed &amp; Grow</h3>
     <p class="hero-sub">Feed your character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
@@ -662,6 +669,18 @@
     <h3 class="shop-heading">🛡️ Shields <span style="font-weight:400;font-size:.68rem;color:var(--ink-soft);text-transform:none;letter-spacing:0;">— bought with Gems, earned from boss fights</span></h3>
     <div class="badge-list" id="shieldList"></div>
     <div class="btnrow" style="justify-content:center;margin-top:18px;"><button class="btn ghost" id="btnCloseGear2">Close</button></div>
+  </div>
+</div>
+
+<!-- EVOLUTION PATH OVERLAY -->
+<div class="overlay" id="overlayEvolutionPath">
+  <div class="sheet" style="max-width:520px;position:relative;">
+    <button class="close-x" id="btnClosePathChoice">✕</button>
+    <span class="eyebrow">Evolution</span>
+    <h2>Choose Your Path</h2>
+    <p style="font-size:.85rem;">This is just how your character looks and grows -- pick whichever feels right. You can switch anytime, for free.</p>
+    <div class="diff-row" id="pathChoiceRow"></div>
+    <div class="btnrow" style="justify-content:center;margin-top:18px;"><button class="btn ghost" id="btnClosePathChoice2">Close</button></div>
   </div>
 </div>
 
@@ -1047,40 +1066,82 @@ var GROWTH_TIERS=[
   {min:620, scale:1.29, decor:['🐉','⚙️'], ring:'mecha'},
   {min:780, scale:1.40, decor:['⚙️','⚡'], ring:'mecha'}
 ];
+/* Tiers 1-5 are a shared "youngster" phase, same for every player of an
+   avatar. At tier 6 (the same point wings/rings/armor start appearing in
+   GROWTH_TIERS) the player picks an evolutionPath: 'cute' (Radiant --
+   magical, sparkling, gentle-but-powerful) or 'mythic' (Valiant -- noble,
+   armored, mighty but heroic, never a monster). Freely re-choosable. */
+var EVOLUTION_PATHS=[
+  {id:'cute',name:'Radiant',emoji:'🌟',tagline:'Magical & sparkling',desc:'A glowing path of starlight, aurora and crystal. Still incredibly powerful -- just friendly-powerful.'},
+  {id:'mythic',name:'Valiant',emoji:'🛡️',tagline:'Noble & mighty',desc:'A bold path of armored guardians and legendary champions. Strong and fierce, always heroic.'}
+];
 var AVATAR_THEMES={
-  '🦊':['Fox Kit','Fox Pup','Sly Fox','Swift Fox','Ember Fox','Blaze Vixen','Nine-Tail Spirit','Dawn Kitsune','Dragonfox','Mecha Kitsune Prime'],
-  '🐯':['Tiger Cub','Young Tiger','Bold Tiger','Storm Tiger','Thunder Tiger','White Tiger Spirit','Sabertooth Titan','Inferno Tiger','Dragon-Fang Tiger','Mecha Tiger Overlord'],
-  '🐼':['Panda Pup','Panda Cub','Roly-Poly Panda','Bamboo Guardian','Jade Panda','Storm Panda','Panda Sage','Celestial Panda','Panda Dragonlord','Mecha Panda Titan'],
-  '🦁':['Lion Cub','Young Lion','Maned Lion','Proud Lion','Golden Lion','Sun Lion','Lion King','Solar Lion Spirit','Dragon-Maned Lion','Mecha Lion Emperor'],
-  '🐸':['Tadpole','Froglet','Leaping Frog','Swamp Hopper','Storm Frog','Thunder Toad','Frog Sage','Poison Dart Champion','Hydra Frog','Mecha Bullfrog Colossus'],
-  '🐵':['Baby Monkey','Young Monkey','Nimble Monkey','Trickster Monkey','Jungle Monkey','Storm Monkey','Monkey King','Celestial Monkey','Monkey Dragonlord','Mecha Monkey Sovereign'],
-  '🦄':['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn','Comet Unicorn','Unicorn Sage','Astral Unicorn','Unicorn Dragonlord','Mecha Unicorn Celestial'],
-  '🐨':['Koala Joey','Young Koala','Sleepy Koala','Eucalyptus Koala','Cloud Koala','Storm Koala','Koala Sage','Thunder Koala','Koala Dragonlord','Mecha Koala Titan'],
-  '🐶':['Puppy','Young Pup','Loyal Hound','Brave Dog','Storm Hound','Thunder Wolfhound','Alpha Dog','Two-Headed Hound','Hydra Hound','Mecha War-Dog Prime'],
-  '🐱':['Kitten','Young Cat','Curious Cat','Shadow Cat','Storm Cat','Thunder Cat','Cat Sage','Nine-Lives Spirit','Cat Dragonlord','Mecha Cat Overlord'],
-  '🐰':['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Storm Rabbit','Thunder Hare','Moon Rabbit','Celestial Hare','Rabbit Dragonlord','Mecha Hare Sovereign'],
-  '🐻':['Bear Cub','Young Bear','Curious Bear','Fierce Bear','Storm Bear','Thunder Bear','Bear Sage','Grizzly Titan','Bear Dragonlord','Mecha Bear Colossus']
+  '🦊':{base:['Fox Kit','Fox Pup','Sly Fox','Swift Fox','Ember Fox'],
+    cute:['Moonlit Fox','Starlight Vixen','Aurora Kitsune','Celestial Fox Spirit','Astral Kitsune Empress'],
+    mythic:['Blaze Fox','Flame-Tail Fox','Nine-Tail Guardian','Dawn Kitsune','Dragonfox Sovereign']},
+  '🐯':{base:['Tiger Cub','Young Tiger','Bold Tiger','Swift Tiger','Bright Tiger'],
+    cute:['Aurora Tiger','Starlit Tiger','Crystal Tiger Spirit','Celestial White Tiger','Astral Tiger Empress'],
+    mythic:['Storm Tiger','Thunder Tiger','Sabertooth Guardian','Dragon-Striped Tiger','Tiger Sovereign']},
+  '🐼':{base:['Panda Pup','Panda Cub','Roly-Poly Panda','Bamboo Scout','Jade Panda'],
+    cute:['Blossom Panda','Starlight Panda','Crystal Panda Spirit','Celestial Panda','Astral Panda Sage'],
+    mythic:['Storm Panda','Bamboo Guardian','Panda Warrior','Panda Dragonlord','Panda Titan']},
+  '🦁':{base:['Lion Cub','Young Lion','Playful Lion','Proud Lion','Golden Lion'],
+    cute:['Sunbeam Lion','Starlight Lion','Crystal-Maned Lion','Celestial Lion Spirit','Astral Lion Empress'],
+    mythic:['Sun Lion','Storm-Maned Lion','Lion Guardian','Dragon-Maned Lion','Lion Sovereign']},
+  '🐸':{base:['Tadpole','Froglet','Leaping Frog','Pond Hopper','Bright Frog'],
+    cute:['Dew Frog','Starlight Frog','Crystal Lily Frog','Celestial Frog Spirit','Astral Frog Sprite'],
+    mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus']},
+  '🐵':{base:['Baby Monkey','Young Monkey','Nimble Monkey','Playful Monkey','Jungle Monkey'],
+    cute:['Starlight Monkey','Moonvine Monkey','Crystal Monkey Spirit','Celestial Monkey','Astral Monkey Sage'],
+    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign']},
+  '🦄':{base:['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn'],
+    cute:['Comet Unicorn','Aurora Unicorn','Crystal Unicorn Spirit','Celestial Unicorn','Astral Unicorn Empress'],
+    mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign']},
+  '🐨':{base:['Koala Joey','Young Koala','Sleepy Koala','Eucalyptus Koala','Cloud Koala'],
+    cute:['Starlight Koala','Dreamy Koala','Crystal Koala Spirit','Celestial Koala','Astral Koala Sage'],
+    mythic:['Storm Koala','Koala Guardian','Koala Champion','Koala Dragonlord','Koala Titan']},
+  '🐶':{base:['Puppy','Young Pup','Loyal Hound','Brave Dog','Storm Hound'],
+    cute:['Starlight Hound','Aurora Pup','Crystal-Coat Hound','Celestial Guardian Dog','Astral Hound Spirit'],
+    mythic:['Thunder Wolfhound','Alpha Guardian','Storm-Crowned Wolfhound','Dragon-Fang Wolfhound','Mecha War-Dog Sovereign']},
+  '🐱':{base:['Kitten','Young Cat','Curious Cat','Playful Cat','Bright Cat'],
+    cute:['Starlight Cat','Moonlit Cat','Crystal Cat Spirit','Celestial Cat','Astral Cat Empress'],
+    mythic:['Storm Cat','Cat Guardian','Cat Champion','Cat Dragonlord','Cat Sovereign']},
+  '🐰':{base:['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Bright Rabbit'],
+    cute:['Moon Rabbit','Starlight Hare','Crystal Rabbit Spirit','Celestial Hare','Astral Rabbit Empress'],
+    mythic:['Storm Rabbit','Thunder Hare','Rabbit Guardian','Rabbit Dragonlord','Rabbit Sovereign']},
+  '🐻':{base:['Bear Cub','Young Bear','Curious Bear','Playful Bear','Bright Bear'],
+    cute:['Starlight Bear','Aurora Bear','Crystal Bear Spirit','Celestial Bear','Astral Bear Sage'],
+    mythic:['Storm Bear','Bear Guardian','Bear Champion','Bear Dragonlord','Bear Sovereign']}
 };
 var AVATAR_SLUGS={
   '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
   '🦄':'unicorn','🐨':'koala','🐶':'dog','🐱':'cat','🐰':'rabbit','🐻':'bear'
 };
 /* Painted character art, filled in as illustrations are added under
-   assets/characters/<slug>/tier-N.png (N = 1..10, matching Tier X/10
-   shown in the UI). A missing entry falls back to the emoji + SVG
-   effect-layer portrait automatically -- nothing has to ship at once. */
+   assets/characters/<slug>/{base,cute,mythic}/tier-N.webp. "base" covers
+   the shared tiers 1-5; "cute" and "mythic" cover tiers 6-10 once a path
+   is chosen. A missing entry falls back to the emoji + SVG effect-layer
+   portrait automatically -- nothing has to ship at once. */
 var CHARACTER_ART={
-  dog:[
-    'assets/characters/dog/tier-1.webp','assets/characters/dog/tier-2.webp','assets/characters/dog/tier-3.webp',
-    'assets/characters/dog/tier-4.webp','assets/characters/dog/tier-5.webp','assets/characters/dog/tier-6.webp',
-    'assets/characters/dog/tier-7.webp','assets/characters/dog/tier-8.webp','assets/characters/dog/tier-9.webp',
-    'assets/characters/dog/tier-10.webp'
-  ]
+  dog:{
+    base:[
+      'assets/characters/dog/tier-1.webp','assets/characters/dog/tier-2.webp','assets/characters/dog/tier-3.webp',
+      'assets/characters/dog/tier-4.webp','assets/characters/dog/tier-5.webp'
+    ],
+    mythic:[
+      'assets/characters/dog/tier-6.webp','assets/characters/dog/tier-7.webp','assets/characters/dog/tier-8.webp',
+      'assets/characters/dog/tier-9.webp','assets/characters/dog/tier-10.webp'
+    ]
+  }
 };
 function artFor(player,tierIndex){
   var slug=AVATAR_SLUGS[player.avatar];
   var forAvatar=slug && CHARACTER_ART[slug];
-  return forAvatar ? forAvatar[tierIndex] : null;
+  if(!forAvatar) return null;
+  if(tierIndex<5) return forAvatar.base ? forAvatar.base[tierIndex] : null;
+  var path=player.evolutionPath;
+  if(!path || !forAvatar[path]) return null;
+  return forAvatar[path][tierIndex-5];
 }
 function tierIndexFor(growth){
   var g=growth||0, idx=0;
@@ -1088,15 +1149,19 @@ function tierIndexFor(growth){
   return idx;
 }
 function stageFor(player){
-  var idx=tierIndexFor(player.growth);
+  var rawIdx=tierIndexFor(player.growth);
+  var path=player.evolutionPath;
+  var pendingChoice = rawIdx>=5 && !path;
+  var idx = pendingChoice ? 4 : rawIdx;
   var tier=GROWTH_TIERS[idx];
   var theme=AVATAR_THEMES[player.avatar]||AVATAR_THEMES[AVATARS[0]];
+  var title = idx<5 ? theme.base[idx] : theme[path][idx-5];
   return {
-    index:idx,
+    index:idx, rawIndex:rawIdx, pendingChoice:pendingChoice, path:path,
     min:tier.min,
     max: idx<GROWTH_TIERS.length-1 ? GROWTH_TIERS[idx+1].min-1 : Infinity,
     scale:tier.scale, decor:tier.decor||[], ring:tier.ring||null,
-    title:theme[idx]
+    title:title
   };
 }
 
@@ -1303,7 +1368,7 @@ el('btnCreate').addEventListener('click',function(){
     id:'p'+Date.now()+Math.floor(Math.random()*1000),
     name:name.slice(0,12), avatar:pickedAvatar, colorHex:pickedColor.hex,
     subProgress:{}, badges:[], gearWorlds:[], fightsWon:0, flawlessWins:0,
-    totalCharsTyped:0, gold:0, gems:0, growth:0,
+    totalCharsTyped:0, gold:0, gems:0, growth:0, evolutionPath:null,
     ownedHats:[], ownedCompanions:[], ownedAuras:[], ownedTitles:[], ownedShields:[],
     equippedHat:null, equippedCompanion:null, equippedAura:null, equippedTitle:null,
     equippedWeaponWorldId:null, equippedShieldId:null, difficulty:'normal',
@@ -1420,14 +1485,30 @@ function renderCharacterScreen(){
 
   var stage=stageFor(p);
   var g=p.growth||0;
-  var nextTier=GROWTH_TIERS[stage.index+1];
-  el('growthStageTitle').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
-  if(nextTier){
-    el('growthMeterText').textContent=g+' / '+nextTier.min;
-    el('growthFill').style.width=Math.max(4,Math.min(100,Math.round((g-stage.min)/(nextTier.min-stage.min)*100)))+'%';
-  } else {
-    el('growthMeterText').textContent=g+' 🏆 Max';
+  if(stage.pendingChoice){
+    el('growthStageTitle').textContent='Tier 5/10 · '+stage.title;
+    el('growthMeterText').textContent='Ready to evolve!';
     el('growthFill').style.width='100%';
+    el('pathChooseBanner').style.display='block';
+    el('pathCurrentRow').style.display='none';
+  } else {
+    var nextTier=GROWTH_TIERS[stage.index+1];
+    el('growthStageTitle').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
+    if(nextTier){
+      el('growthMeterText').textContent=g+' / '+nextTier.min;
+      el('growthFill').style.width=Math.max(4,Math.min(100,Math.round((g-stage.min)/(nextTier.min-stage.min)*100)))+'%';
+    } else {
+      el('growthMeterText').textContent=g+' 🏆 Max';
+      el('growthFill').style.width='100%';
+    }
+    el('pathChooseBanner').style.display='none';
+    if(stage.path){
+      var pathMeta=EVOLUTION_PATHS.find(function(x){return x.id===stage.path;});
+      el('pathCurrentRow').style.display='block';
+      el('btnChangePath').textContent=pathMeta.emoji+' On the '+pathMeta.name+' path — change?';
+    } else {
+      el('pathCurrentRow').style.display='none';
+    }
   }
 
   renderShop('hat',HATS,'shopHats');
@@ -1461,7 +1542,8 @@ function feedPlayer(item){
   saveData();
   refreshTopbar();
   renderCharacterScreen();
-  if(after.index!==before.index) showEvolveBanner(after);
+  if(after.pendingChoice && !before.pendingChoice) openEvolutionPathChoice();
+  else if(after.index!==before.index) showEvolveBanner(after);
 }
 function showEvolveBanner(stage){
   var host=el('growthPanel'); if(!host) return;
@@ -1474,6 +1556,37 @@ function showEvolveBanner(stage){
   portrait.classList.add('evolve-pop');
   setTimeout(function(){ portrait.classList.remove('evolve-pop'); },500);
 }
+
+/* ================= EVOLUTION PATH CHOICE ================= */
+function openEvolutionPathChoice(){
+  var p=getCurrentPlayer(); if(!p) return;
+  var row=el('pathChoiceRow'); row.innerHTML='';
+  EVOLUTION_PATHS.forEach(function(path){
+    var theme=AVATAR_THEMES[p.avatar]||AVATAR_THEMES[AVATARS[0]];
+    var previewTitle=theme[path.id][0];
+    var card=document.createElement('div');
+    card.className='diff-card'+(p.evolutionPath===path.id?' selected':'');
+    card.innerHTML='<div class="dicon">'+path.emoji+'</div><div class="dname">'+path.name+'</div>'+
+      '<div class="ddesc">'+path.desc+'<br><b>'+escapeHtml(previewTitle)+'</b> at Tier 6</div>';
+    card.addEventListener('click',function(){ chooseEvolutionPath(path.id); });
+    row.appendChild(card);
+  });
+  el('overlayEvolutionPath').classList.add('active');
+}
+function chooseEvolutionPath(pathId){
+  var p=getCurrentPlayer(); if(!p) return;
+  var wasPending=stageFor(p).pendingChoice;
+  p.evolutionPath=pathId;
+  saveData();
+  refreshTopbar();
+  el('overlayEvolutionPath').classList.remove('active');
+  renderCharacterScreen();
+  if(wasPending) showEvolveBanner(stageFor(p));
+}
+el('btnChoosePath').addEventListener('click',openEvolutionPathChoice);
+el('btnChangePath').addEventListener('click',openEvolutionPathChoice);
+el('btnClosePathChoice').addEventListener('click',function(){ el('overlayEvolutionPath').classList.remove('active'); });
+el('btnClosePathChoice2').addEventListener('click',function(){ el('overlayEvolutionPath').classList.remove('active'); });
 function shopKeys(category){
   if(category==='hat') return {owned:'ownedHats',equip:'equippedHat'};
   if(category==='companion') return {owned:'ownedCompanions',equip:'equippedCompanion'};
