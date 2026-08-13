@@ -673,6 +673,68 @@ var LEVELS=[
   {id:12,title:'Boss Challenge',emoji:'👑',type:'sentences',bank:['The 3 dogs ran quickly to the old, red barn!','In 2024, we visited 12 amazing places.','Hurry up, she shouted with a big smile!','My favorite number is 7, but yours might be 3.','We packed 5 bags for our trip to the lake.','He scored 100 points in the final round!'],targetWpm:25,blurb:'Capitals, numbers, and punctuation — all at once. Good luck!',miniBoss:{name:'Royal Guard',emoji:'💂'},boss:{name:'The Keyboard King',emoji:'🐲'}}
 ];
 
+/* ---------- worlds 13-100: a generated campaign ----------
+   Worlds 1-12 are the hand-built intro arc that teaches every key.
+   From here on, 8 arcs of 11 worlds each escalate from longer words,
+   to comma/quote-heavy sentences, to full short stories, with WPM
+   targets climbing from 26 to 55. Weapon drops stop after world 12
+   (GEAR is a fixed 12-piece arsenal) -- these worlds are about
+   mastery, gold/gems, and the campaign's own difficulty curve. */
+var WORD_BANK_TIERS=[
+  ['about','across','animal','answer','because','before','between','bicycle','borrow','bottle','bucket','camera','castle','chicken','circle','cousin','dragon','engine','feather','forest','garden','giraffe','hamster','history','holiday','island','jungle','kitchen','ladder','magnet'],
+  ['adventure','beautiful','butterfly','calculate','calendar','celebrate','challenge','continent','curiosity','dangerous','delicious','direction','dinosaur','discovery','education','encourage','fantastic','geography','gigantic','gymnastics','helicopter','important','invisible','knowledge','labyrinth','mountain','mysterious','neighbor','opportunity','umbrella']
+];
+var SENTENCE_BANK_TIERS=[
+  ['The little fox jumped over the fence.','We built a sandcastle by the sea.','My brother plays soccer every weekend.','The library was quiet and warm.','A gentle breeze moved through the trees.','She packed her bag for the trip.','The puppy chased its tail in circles.','We watched the stars come out at night.','He fixed his bike after school.','The garden was full of blooming flowers.','They shared a pizza after the game.','The train arrived exactly on time.','A rainbow appeared after the storm.','The children laughed at the funny clown.','Grandma told us a story by the fire.'],
+  ['After the rain stopped, we went outside to play.','The cat, who was very lazy, slept all afternoon.','I wanted to go swimming, but the pool was closed.','She studied hard for the test; she wanted to do well.','Although it was cold, the kids built a snowman.','We packed sandwiches, apples, and juice for the picnic.','The wizard raised his staff, and the room went silent.','Because he practiced daily, his typing got much faster.','The dragon circled the tower, searching for its treasure.','We could go to the park, or we could stay home.','The old bridge creaked, but it held our weight.','Since the movie started late, we missed the beginning.','The chef added salt, pepper, and a pinch of sugar.','Once the sun set, the fireflies began to glow.','The team practiced every day, and it finally paid off.'],
+  ['"Watch out!" she shouted as the ball flew past.','Don\'t forget: the meeting starts at 9:00 sharp.','"Where did you find this?" he asked, amazed.','The recipe needs three things: flour, sugar, and eggs.','"I can\'t believe we won!" the whole team cheered.','She whispered, "It\'s a secret," and smiled.','Remember this rule: always look both ways.','"Is anyone home?" the mail carrier called out.','The coach said, "Great effort, everyone!"','He asked, "What\'s the capital of France?"','My favorite quote is: "Believe you can, and you\'re halfway there."','"Let\'s go!" she yelled, grabbing her backpack.','The sign read: "No swimming after dark."','"That\'s incredible!" gasped the crowd.','She said, "I\'ll meet you there at noon."']
+];
+var STORY_BANK_TIERS=[
+  ['Mia found an old key in the attic. It didn\'t fit any door she knew. That night, she dreamed of a castle waiting to be unlocked.','The robot woke up in a quiet workshop. Dust covered its metal arms. Slowly, it stood up and looked for its missing friend.','A small boat drifted onto the beach. Inside was a map with no words, only pictures. The kids decided to follow it.','Every morning, the baker left bread for the birds. One winter, the birds led him to a lost puppy. He fed them both from then on.','The lighthouse blinked through the fog. A ship far out at sea turned toward the light. The keeper smiled and lit another lamp.','Deep in the forest, a fox found a glowing stone. It hummed softly when the moon rose. The fox carried it home to share the light.','The astronaut planted a small flag on the quiet moon. She looked back at Earth, tiny and blue. It was the best view she had ever seen.','A girl painted a door on her bedroom wall. One evening, the door creaked open by itself. She grabbed her shoes and stepped through.','The old clock in the hallway had stopped years ago. One day, it began ticking again at midnight. Nobody in the house could explain why.','A dog buried a bone under the old oak tree. Years later, a small sapling grew from that very spot. The dog, now old, still napped beneath it.'],
+  ['The twins found a locked chest in their grandmother\'s barn. Neither key they tried would open it, so they decided to ask her about it. She laughed and said the chest had been locked for fifty years. That evening, she finally told them what was inside.','Every summer, the town held a race across the river on homemade rafts. This year, Jamal built his raft from old barrels and rope. His friends doubted it would float, but he was determined to prove them wrong. When the horn sounded, his raft shot ahead of the rest.','The comet had not been seen in over two hundred years. Scientists across the world prepared their telescopes for the one night it would appear. Clouds rolled in just before sunset, and everyone feared they would miss it. At midnight, the sky cleared just long enough for a single, perfect glimpse.','A young inventor built a machine that could turn sound into color. Her first test filled the garage with swirling blues and greens. Neighbors gathered outside, drawn by the strange, beautiful light. She knew then that her invention was more than just a toy.','The village well had run dry for the first time in memory. An old traveler arrived and asked to see the well before anyone explained the problem. He lowered a strange copper coin into the darkness and listened. Within an hour, water began to rise again.','Two sisters discovered a hidden trail behind their new house. It wound through the woods and ended at a small, still pond. Something in the water glimmered every time the wind moved the surface. They returned every day that summer, trying to solve the mystery.','The music box had belonged to five generations of the same family. Its melody was so old that no one remembered its name. When it finally broke, the youngest daughter spent a whole year learning to fix it herself. On her birthday, the box played again for the first time in decades.','A stray cat kept appearing at the edge of the schoolyard every Friday. The students began saving bits of lunch to leave out for it. One rainy afternoon, the cat led a boy straight to a litter of kittens hidden under the porch. By spring, every kitten had a home.','The old sailor claimed he once spoke with a whale. Most people in town laughed it off as one of his tall tales. But every year, on the same September morning, a whale surfaced near his boat and stayed until sunset. He never explained it, and no one ever asked again.','A meteor shower was predicted for the coldest night of the year. Despite the chill, half the town gathered in the field with blankets and thermoses. For an hour, streaks of light crossed the sky faster than anyone could count. It became the story every family told for years after.'],
+  ['The cartographer had mapped every mountain in the kingdom except one. It appeared only at dawn, wrapped in silver mist, and vanished by midmorning. "Perhaps it isn\'t a mountain at all," her mentor suggested one evening. Determined to find out, she set off before sunrise with nothing but a compass and a notebook. What she found at the summit changed the maps forever.','When the observatory\'s telescope malfunctioned, Dr. Reyes assumed it was a simple wiring issue. The data, however, kept showing a signal that pulsed in a pattern too regular to be random. "Could this be natural?" her assistant asked, half-joking. She spent three sleepless nights checking every possibility before allowing herself to consider the impossible one. By the fourth night, the whole team was gathered around the screen, waiting.','The clocktower had chimed every hour for over a century, without fail, until the morning it simply stopped. Townsfolk gathered below, murmuring theories: a broken gear, a stuck pendulum, perhaps even a ghost. The elderly clockmaker climbed the tower alone, refusing all offers of help. Hours later, he emerged holding a small, tarnished pocket watch that had been wedged in the mechanism for who knows how long. He never explained where it came from, only that the tower now kept perfect time again.','Long before the bridge was built, travelers crossed the canyon using a rope line strung between two cliffs. Legends spoke of a merchant who crossed it a thousand times without ever looking down. His granddaughter, an engineer, later designed the very bridge that replaced the old rope, saying she wanted no one else to feel that fear. On the day of its opening, she walked across first, carrying a single lantern. At the far end, she hung it where the old rope line used to begin.','The greenhouse had been abandoned for so long that vines had claimed every pane of glass. A group of students, assigned to clean it for a class project, expected little more than dust and broken pots. Instead, they found a single, thriving plant unlike anything in their botany textbooks, growing directly through a crack in the concrete floor. Their teacher, usually unshakeable, went pale when she saw it and immediately called the university. Within a week, researchers from three countries had arrived to study what the students had found.']
+];
+
+var CAMPAIGN_ARCS=[
+  {name:'Word Voyage',emoji:'🧭',type:'words',bankTier:0,blurb:'Longer words now that you know every key -- keep your eyes up.'},
+  {name:'Word Odyssey',emoji:'🗺️',type:'words',bankTier:1,blurb:'The hardest words in the game. Long, unfamiliar, and worth it.'},
+  {name:'Sentence Sprint',emoji:'🏁',type:'sentences',bankTier:0,blurb:'Full sentences, back to back -- keep your rhythm steady.'},
+  {name:'Comma Canyon',emoji:'🏜️',type:'sentences',bankTier:1,blurb:'Compound sentences with commas and semicolons.'},
+  {name:'Quote Quarry',emoji:'💬',type:'sentences',bankTier:2,blurb:'Dialogue, colons, and contractions -- punctuation gets real.'},
+  {name:'Story Springs',emoji:'📗',type:'story',bankTier:0,blurb:'Short stories now, a few sentences at a time.'},
+  {name:'Paragraph Peaks',emoji:'🏔️',type:'story',bankTier:1,blurb:'Longer stories that test both speed and stamina.'},
+  {name:'Keyboard Legends',emoji:'👑',type:'story',bankTier:2,blurb:'The hardest stories in the game. This is the endgame.'}
+];
+var ARC_ADJ=['Storm','Crimson','Shadow','Golden','Frost','Ember','Iron','Mystic','Silver','Thorn','Void','Radiant'];
+var ARC_CREATURE=[{n:'Griffin',e:'🦅'},{n:'Wyrm',e:'🐍'},{n:'Golem',e:'🗿'},{n:'Phoenix',e:'🔥'},{n:'Kraken',e:'🐙'},{n:'Sphinx',e:'🦁'},{n:'Yeti',e:'❄️'},{n:'Basilisk',e:'🐲'},{n:'Chimera',e:'🦄'},{n:'Wraith',e:'👻'},{n:'Colossus',e:'🗿'},{n:'Direwolf',e:'🐺'}];
+function proceduralEnemy(seed){
+  var adj=ARC_ADJ[seed%ARC_ADJ.length];
+  var creature=ARC_CREATURE[Math.floor(seed/ARC_ADJ.length)%ARC_CREATURE.length];
+  return {name:adj+' '+creature.n,emoji:creature.e};
+}
+function campaignTargetWpm(id){
+  var frac=Math.pow((id-12)/88,0.7);
+  return Math.round(25+30*frac);
+}
+(function buildExtendedLevels(){
+  var ARC_SIZE=11;
+  for(var id=13; id<=100; id++){
+    var arcIndex=Math.floor((id-13)/ARC_SIZE);
+    var posInArc=(id-13)%ARC_SIZE+1;
+    var arc=CAMPAIGN_ARCS[Math.min(arcIndex,CAMPAIGN_ARCS.length-1)];
+    var bank = arc.type==='words' ? WORD_BANK_TIERS[arc.bankTier]
+             : arc.type==='story' ? STORY_BANK_TIERS[arc.bankTier]
+             : SENTENCE_BANK_TIERS[arc.bankTier];
+    LEVELS.push({
+      id:id, title:arc.name+' '+posInArc, emoji:arc.emoji, type:arc.type, bank:bank,
+      targetWpm:campaignTargetWpm(id), blurb:arc.blurb,
+      miniBoss:proceduralEnemy(id*2), boss:proceduralEnemy(id*2+1)
+    });
+  }
+  LEVELS[LEVELS.length-1].title='The Final Cipher';
+  LEVELS[LEVELS.length-1].boss={name:'The Keymaster',emoji:'🗝️'};
+})();
+
 LEVELS.forEach(function(l){ l.boss.element=(l.id+1)%6; });
 
 /* ---------- elements: a 6-way advantage wheel used by weapons, shields and bosses.
@@ -790,10 +852,15 @@ var FOODS=[
 
 var RANKS=[
   {min:0,max:0,title:'Rookie Typist',frame:'#9aa3ad'},
-  {min:1,max:3,title:'Bronze Typist',frame:'#c97b3d'},
-  {min:4,max:7,title:'Silver Typist',frame:'#b9c2cc'},
-  {min:8,max:11,title:'Gold Typist',frame:'#e8b923'},
-  {min:12,max:12,title:'Diamond Champion',frame:'#7ee8e0'}
+  {min:1,max:5,title:'Bronze Typist',frame:'#c97b3d'},
+  {min:6,max:12,title:'Silver Typist',frame:'#b9c2cc'},
+  {min:13,max:24,title:'Gold Typist',frame:'#e8b923'},
+  {min:25,max:39,title:'Platinum Typist',frame:'#8fd3d8'},
+  {min:40,max:59,title:'Diamond Typist',frame:'#7ee8e0'},
+  {min:60,max:79,title:'Master Typist',frame:'#b197fc'},
+  {min:80,max:94,title:'Grandmaster Typist',frame:'#ff9f43'},
+  {min:95,max:99,title:'Keyboard Legend',frame:'#ff6b9d'},
+  {min:100,max:100,title:'Keycap Champion',frame:'#ffd43b'}
 ];
 
 var STAGE_META={
@@ -962,6 +1029,7 @@ function shuffle(arr){
 function subParams(level,subKind){
   if(level.type==='drill') return {n: subKind==='practice'?8:subKind==='skirmish'?10:14};
   if(level.type==='words') return {n: subKind==='practice'?6:subKind==='skirmish'?8:12};
+  if(level.type==='story') return {n: subKind==='boss'?2:1};
   return {n: subKind==='practice'?2:subKind==='skirmish'?3:4};
 }
 function subTargetWpm(level,subKind){
@@ -1192,7 +1260,7 @@ function renderCharacterScreen(){
   el('charRank').textContent=rank.title;
   el('charRank').style.background=rank.frame;
   el('charCard').style.borderColor=rank.frame;
-  el('charWorlds').textContent=bossesCleared(p)+'/12';
+  el('charWorlds').textContent=bossesCleared(p)+'/'+LEVELS.length;
   el('charStarsTotal').textContent=totalStars(p);
   el('charGold').textContent=p.gold||0;
   var w=equippedWeapon(p);
@@ -1679,7 +1747,7 @@ function finishLevel(kind){
   }
 
   var newGear=null;
-  if(playState.subKind==='boss' && passed){
+  if(playState.subKind==='boss' && passed && playState.worldId<=GEAR.length){
     player.gearWorlds=player.gearWorlds||[];
     if(player.gearWorlds.indexOf(playState.worldId)===-1){
       player.gearWorlds.push(playState.worldId);
@@ -1747,8 +1815,13 @@ function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarn
   });
   if(playState.worldId===12 && playState.subKind==='boss' && kind==='win'){
     var w=document.createElement('div'); w.className='badge-banner reward-banner';
-    w.innerHTML='<span style="font-size:1.4rem;">🏆</span><span><b>Keycap Quest Complete!</b><br>You mastered the whole keyboard.</span>';
+    w.innerHTML='<span style="font-size:1.4rem;">🎓</span><span><b>Keyboard Mastered!</b><br>You know every key. The road ahead gets tougher.</span>';
     banners.appendChild(w);
+  }
+  if(playState.worldId===LEVELS.length && playState.subKind==='boss' && kind==='win'){
+    var wf=document.createElement('div'); wf.className='badge-banner reward-banner';
+    wf.innerHTML='<span style="font-size:1.4rem;">🏆</span><span><b>Keycap Quest Complete!</b><br>You conquered all '+LEVELS.length+' worlds.</span>';
+    banners.appendChild(wf);
   }
 
   var nextBtn=el('btnNextLevel');
