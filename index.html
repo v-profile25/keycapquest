@@ -488,8 +488,11 @@
         <button class="btn ghost" id="btnChangePath" style="font-size:.72rem;padding:6px 14px;"></button>
       </div>
     </div>
+    <h3 class="shop-heading">🐾 Your Roster</h3>
+    <p class="hero-sub">Recruit more characters and swap your active one anytime — for free. Each has its own element, growth and evolution, so bringing the right one to a boss matters as much as your gear.</p>
+    <div class="shop-grid" id="rosterGrid"></div>
     <h3 class="shop-heading">🍖 Feed &amp; Grow</h3>
-    <p class="hero-sub">Feed your character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
+    <p class="hero-sub">Feed your active character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
     <div class="shop-grid" id="shopFood"></div>
 
     <p class="hero-sub" style="margin-top:26px;">Cosmetics below are just for looks — tap to buy with gold, tap again to equip or unequip. Your rank border is earned by clearing worlds.</p>
@@ -713,6 +716,21 @@
     <div class="btnrow" style="justify-content:center;margin-top:10px;">
       <button class="btn" id="btnDoImport">⬇️ Import</button>
       <button class="btn ghost" id="btnCloseImport2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECRUIT CHARACTER OVERLAY -->
+<div class="overlay" id="overlayRecruit">
+  <div class="sheet" style="max-width:480px;position:relative;">
+    <button class="close-x" id="btnCloseRecruit">✕</button>
+    <span class="eyebrow">Roster</span>
+    <h2>Recruit a Character</h2>
+    <p id="recruitCostLine" style="font-size:.85rem;">Cost: <b>🪙 100</b></p>
+    <div class="swatches" id="recruitAvatarSwatches" style="justify-content:center;"></div>
+    <div class="btnrow" style="justify-content:center;margin-top:18px;">
+      <button class="btn" id="btnDoRecruit" disabled>Recruit</button>
+      <button class="btn ghost" id="btnCloseRecruit2">Cancel</button>
     </div>
   </div>
 </div>
@@ -1178,6 +1196,76 @@ var AVATAR_SLUGS={
   '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
   '🦄':'unicorn','🐨':'koala','🐶':'dog','🐱':'cat','🐰':'rabbit','🐻':'bear'
 };
+/* Each avatar has its own elemental affinity (2 per element), so
+   bringing the right character to a fight matters alongside gear. */
+var AVATAR_ELEMENT={
+  '🦊':0,'🦁':0,   // Fire
+  '🐼':1,'🐵':1,   // Nature
+  '🐯':2,'🐶':2,   // Electric
+  '🦄':3,'🐨':3,   // Ice
+  '🐸':4,'🐻':4,   // Water
+  '🐱':5,'🐰':5    // Shadow
+};
+
+/* New players pick from just these 3; the other 9 are "saved" from
+   specific world bosses (defeat that boss once, and it's unlocked for
+   recruiting from then on -- for every profile, not just the one that
+   freed it). Spread across the 100-world campaign so there's always
+   another rescue to look forward to. Room to grow past 12 avatars
+   later; this ships with the roster already built. */
+var STARTER_AVATARS=['🐶','🐱','🦊'];
+var AVATAR_UNLOCK_WORLD={
+  '🐰':5,  '🦁':12, '🐵':20, '🐨':30, '🐸':40,
+  '🐯':55, '🐼':70, '🐻':85, '🦄':100
+};
+function isAvatarUnlocked(player,avatar){
+  if(STARTER_AVATARS.indexOf(avatar)!==-1) return true;
+  var worldId=AVATAR_UNLOCK_WORLD[avatar];
+  if(!worldId) return true;
+  var boss=getSub(player,worldId,'boss');
+  return !!(boss && boss.passed);
+}
+
+/* ---------- character roster ----------
+   A player owns 1+ characters (creatures), each with its own growth/
+   evolutionPath, and exactly one is "active" at a time for battle and
+   display. Existing single-avatar saves are migrated in place the
+   first time this runs: player.avatar/growth/evolutionPath become the
+   first roster entry. Switching is free; recruiting a new slot costs
+   gold, priced by roster size. */
+function activeCharacter(player){
+  if(!player.characters || !player.characters.length){
+    var ch={id:'ch_legacy',avatar:player.avatar,growth:player.growth||0,evolutionPath:player.evolutionPath||null,createdAt:player.createdAt||Date.now()};
+    player.characters=[ch];
+    player.activeCharacterId=ch.id;
+    saveData();
+  }
+  return player.characters.find(function(c){return c.id===player.activeCharacterId;}) || player.characters[0];
+}
+function rosterCost(player){
+  var n=(player.characters||[activeCharacter(player)]).length;
+  return 100 + (n-1)*150;
+}
+function recruitCharacter(avatarEmoji){
+  var p=getCurrentPlayer(); if(!p) return false;
+  activeCharacter(p);
+  if(!isAvatarUnlocked(p,avatarEmoji)) return false;
+  if(p.characters.some(function(c){return c.avatar===avatarEmoji;})) return false;
+  var cost=rosterCost(p);
+  if((p.gold||0)<cost) return false;
+  p.gold-=cost;
+  var ch={id:'ch'+Date.now()+Math.floor(Math.random()*1000),avatar:avatarEmoji,growth:0,evolutionPath:null,createdAt:Date.now()};
+  p.characters.push(ch);
+  p.activeCharacterId=ch.id;
+  saveData();
+  return true;
+}
+function switchActiveCharacter(id){
+  var p=getCurrentPlayer(); if(!p) return;
+  if(!p.characters.find(function(c){return c.id===id;})) return;
+  p.activeCharacterId=id;
+  saveData();
+}
 /* Painted character art, filled in as illustrations are added under
    assets/characters/<slug>/{base,cute,mythic}/tier-N.webp. "base" covers
    the shared tiers 1-5; "cute" and "mythic" cover tiers 6-10 once a path
@@ -1195,27 +1283,28 @@ var CHARACTER_ART={
     ]
   }
 };
-function artFor(player,tierIndex){
-  var slug=AVATAR_SLUGS[player.avatar];
+function artForCharacter(ch,tierIndex){
+  var slug=AVATAR_SLUGS[ch.avatar];
   var forAvatar=slug && CHARACTER_ART[slug];
   if(!forAvatar) return null;
   if(tierIndex<5) return forAvatar.base ? forAvatar.base[tierIndex] : null;
-  var path=player.evolutionPath;
+  var path=ch.evolutionPath;
   if(!path || !forAvatar[path]) return null;
   return forAvatar[path][tierIndex-5];
 }
+function artFor(player,tierIndex){ return artForCharacter(activeCharacter(player),tierIndex); }
 function tierIndexFor(growth){
   var g=growth||0, idx=0;
   for(var i=0;i<GROWTH_TIERS.length;i++){ if(g>=GROWTH_TIERS[i].min) idx=i; }
   return idx;
 }
-function stageFor(player){
-  var rawIdx=tierIndexFor(player.growth);
-  var path=player.evolutionPath;
+function stageForCharacter(ch){
+  var rawIdx=tierIndexFor(ch.growth);
+  var path=ch.evolutionPath;
   var pendingChoice = rawIdx>=5 && !path;
   var idx = pendingChoice ? 4 : rawIdx;
   var tier=GROWTH_TIERS[idx];
-  var theme=AVATAR_THEMES[player.avatar]||AVATAR_THEMES[AVATARS[0]];
+  var theme=AVATAR_THEMES[ch.avatar]||AVATAR_THEMES[AVATARS[0]];
   var title = idx<5 ? theme.base[idx] : theme[path][idx-5];
   return {
     index:idx, rawIndex:rawIdx, pendingChoice:pendingChoice, path:path,
@@ -1225,6 +1314,7 @@ function stageFor(player){
     title:title
   };
 }
+function stageFor(player){ return stageForCharacter(activeCharacter(player)); }
 
 /* ---------- portrait rendering ---------- */
 function getAura(player){
@@ -1250,13 +1340,14 @@ function buildArmorSVG(color){
     '<circle cx="50" cy="26" r="7" fill="'+color+'"/>'+
   '</svg>';
 }
-function renderPortrait(container,player,size){
+function renderPortrait(container,player,size,charOverride){
   if(!container) return;
+  var ch=charOverride||activeCharacter(player);
   var rank=rankFor(player);
   var aura=getAura(player);
-  var stage=stageFor(player);
+  var stage=stageForCharacter(ch);
   var elemColor=elementTintColor(player);
-  var art=artFor(player,stage.index);
+  var art=artForCharacter(ch,stage.index);
   var hat = player.equippedHat ? HATS.find(function(h){return h.id===player.equippedHat;}) : null;
   var comp = player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
   container.className='portrait portrait-'+size+' tier-'+stage.index+(art?' has-art':'');
@@ -1291,7 +1382,7 @@ function renderPortrait(container,player,size){
     wingsHtml+
     (stage.ring==='mecha'?'<div class="portrait-mecha-ring"></div>':'')+
     (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
-    '<div class="portrait-avatar" style="transform:scale('+stage.scale+')">'+player.avatar+'</div>'+
+    '<div class="portrait-avatar" style="transform:scale('+stage.scale+')">'+ch.avatar+'</div>'+
     armorHtml+
     decorHtml+
     (stage.index===0?'<div class="portrait-cute">✨</div>':'')+
@@ -1364,7 +1455,7 @@ function refreshTopbar(){
 }
 
 /* ================= PROFILE SCREEN ================= */
-var pickedAvatar=AVATARS[0], pickedColor=COLORS[3];
+var pickedAvatar=STARTER_AVATARS[0], pickedColor=COLORS[3];
 
 function renderProfiles(){
   el('topbar').style.display='none';
@@ -1389,7 +1480,7 @@ function renderProfiles(){
   addCard.innerHTML='<div class="av">＋</div><div class="pname">New Player</div>';
   addCard.addEventListener('click',function(){
     el('newForm').style.display='block'; el('newName').value='';
-    pickedAvatar=AVATARS[Math.floor(Math.random()*AVATARS.length)];
+    pickedAvatar=STARTER_AVATARS[Math.floor(Math.random()*STARTER_AVATARS.length)];
     pickedColor=COLORS[Math.floor(Math.random()*COLORS.length)];
     buildSwatches(); el('newName').focus();
   });
@@ -1418,7 +1509,7 @@ function renderProfiles(){
 }
 function buildSwatches(){
   var av=el('avatarSwatches'); av.innerHTML='';
-  AVATARS.forEach(function(a){
+  STARTER_AVATARS.forEach(function(a){
     var b=document.createElement('div'); b.className='swatch-av'+(a===pickedAvatar?' sel':''); b.textContent=a;
     b.addEventListener('click',function(){ pickedAvatar=a; buildSwatches(); });
     av.appendChild(b);
@@ -1647,12 +1738,82 @@ function renderCharacterScreen(){
     }
   }
 
+  renderRoster();
   renderShop('hat',HATS,'shopHats');
   renderShop('companion',COMPANIONS,'shopCompanions');
   renderShop('aura',AURAS,'shopAuras');
   renderShop('title',TITLES,'shopTitles');
   renderFoodShop();
 }
+/* ================= ROSTER ================= */
+function speciesNameFor(avatar){
+  var slug=AVATAR_SLUGS[avatar]; if(!slug) return 'Creature';
+  return slug.charAt(0).toUpperCase()+slug.slice(1);
+}
+function renderRoster(){
+  var p=getCurrentPlayer(); if(!p) return;
+  activeCharacter(p);
+  var grid=el('rosterGrid'); grid.innerHTML='';
+  p.characters.forEach(function(ch){
+    var stage=stageForCharacter(ch);
+    var elem=ELEMENTS[AVATAR_ELEMENT[ch.avatar]];
+    var isActive=ch.id===p.activeCharacterId;
+    var card=document.createElement('div');
+    card.className='shop-item'+(isActive?' equipped':'');
+    card.innerHTML='<div class="portrait portrait-pf" data-roster="'+ch.id+'" style="margin:0 auto;"></div>'+
+      '<div class="sname">'+speciesNameFor(ch.avatar)+'</div>'+
+      '<div class="sprice">'+elem.emoji+' Tier '+(stage.index+1)+(isActive?' · Active':'')+'</div>';
+    if(!isActive) card.addEventListener('click',function(){ switchActiveCharacter(ch.id); renderCharacterScreen(); });
+    grid.appendChild(card);
+    renderPortrait(card.querySelector('[data-roster]'),p,'pf',ch);
+  });
+  var recruitCard=document.createElement('div');
+  recruitCard.className='shop-item';
+  recruitCard.innerHTML='<div class="semoji">➕</div><div class="sname">Recruit</div><div class="sprice">🪙 '+rosterCost(p)+'</div>';
+  recruitCard.addEventListener('click',openRecruitOverlay);
+  grid.appendChild(recruitCard);
+}
+function openRecruitOverlay(){
+  var p=getCurrentPlayer(); if(!p) return;
+  activeCharacter(p);
+  var cost=rosterCost(p);
+  el('recruitCostLine').innerHTML='Cost: <b>🪙 '+cost+'</b>'+((p.gold||0)<cost?' <span style="color:var(--bad);">— not enough gold</span>':'');
+  var ownedAvatars=p.characters.map(function(c){return c.avatar;});
+  var picked=null;
+  var box=el('recruitAvatarSwatches'); box.innerHTML='';
+  var doBtn=el('btnDoRecruit'); doBtn.disabled=true;
+  AVATARS.forEach(function(a){
+    var owned=ownedAvatars.indexOf(a)!==-1;
+    var unlocked=isAvatarUnlocked(p,a);
+    var b=document.createElement('div');
+    b.className='swatch-av'+(owned||!unlocked?' locked':'');
+    b.style.opacity=(owned||!unlocked)?'.35':'1';
+    b.style.cursor=(owned||!unlocked)?'default':'pointer';
+    b.textContent=a;
+    b.title = owned ? 'Already in your roster' : (!unlocked ? 'Save this creature from World '+AVATAR_UNLOCK_WORLD[a]+"'s boss first" : speciesNameFor(a));
+    if(!owned && unlocked){
+      b.addEventListener('click',function(){
+        picked=a;
+        box.querySelectorAll('.swatch-av').forEach(function(s){s.classList.remove('sel');});
+        b.classList.add('sel');
+        doBtn.disabled=(p.gold||0)<cost;
+      });
+    }
+    box.appendChild(b);
+  });
+  doBtn.onclick=function(){
+    if(!picked) return;
+    if(recruitCharacter(picked)){
+      el('overlayRecruit').classList.remove('active');
+      refreshTopbar();
+      renderCharacterScreen();
+    }
+  };
+  el('overlayRecruit').classList.add('active');
+}
+el('btnCloseRecruit').addEventListener('click',function(){ el('overlayRecruit').classList.remove('active'); });
+el('btnCloseRecruit2').addEventListener('click',function(){ el('overlayRecruit').classList.remove('active'); });
+
 function renderFoodShop(){
   var p=getCurrentPlayer();
   var grid=el('shopFood'); grid.innerHTML='';
@@ -1671,10 +1832,11 @@ function renderFoodShop(){
 function feedPlayer(item){
   var p=getCurrentPlayer();
   if((p.gold||0)<item.price) return;
-  var before=stageFor(p);
+  var ch=activeCharacter(p);
+  var before=stageForCharacter(ch);
   p.gold-=item.price;
-  p.growth=(p.growth||0)+item.growth;
-  var after=stageFor(p);
+  ch.growth=(ch.growth||0)+item.growth;
+  var after=stageForCharacter(ch);
   saveData();
   refreshTopbar();
   renderCharacterScreen();
@@ -1696,12 +1858,13 @@ function showEvolveBanner(stage){
 /* ================= EVOLUTION PATH CHOICE ================= */
 function openEvolutionPathChoice(){
   var p=getCurrentPlayer(); if(!p) return;
+  var ch=activeCharacter(p);
   var row=el('pathChoiceRow'); row.innerHTML='';
   EVOLUTION_PATHS.forEach(function(path){
-    var theme=AVATAR_THEMES[p.avatar]||AVATAR_THEMES[AVATARS[0]];
+    var theme=AVATAR_THEMES[ch.avatar]||AVATAR_THEMES[AVATARS[0]];
     var previewTitle=theme[path.id][0];
     var card=document.createElement('div');
-    card.className='diff-card'+(p.evolutionPath===path.id?' selected':'');
+    card.className='diff-card'+(ch.evolutionPath===path.id?' selected':'');
     card.innerHTML='<div class="dicon">'+path.emoji+'</div><div class="dname">'+path.name+'</div>'+
       '<div class="ddesc">'+path.desc+'<br><b>'+escapeHtml(previewTitle)+'</b> at Tier 6</div>';
     card.addEventListener('click',function(){ chooseEvolutionPath(path.id); });
@@ -1711,13 +1874,14 @@ function openEvolutionPathChoice(){
 }
 function chooseEvolutionPath(pathId){
   var p=getCurrentPlayer(); if(!p) return;
-  var wasPending=stageFor(p).pendingChoice;
-  p.evolutionPath=pathId;
+  var ch=activeCharacter(p);
+  var wasPending=stageForCharacter(ch).pendingChoice;
+  ch.evolutionPath=pathId;
   saveData();
   refreshTopbar();
   el('overlayEvolutionPath').classList.remove('active');
   renderCharacterScreen();
-  if(wasPending) showEvolveBanner(stageFor(p));
+  if(wasPending) showEvolveBanner(stageForCharacter(ch));
 }
 el('btnChoosePath').addEventListener('click',openEvolutionPathChoice);
 el('btnChangePath').addEventListener('click',openEvolutionPathChoice);
@@ -1810,17 +1974,28 @@ function openPreview(worldId,subKind){
     var bossElem=ELEMENTS[enemy.element];
     var weapon=equippedWeapon(player);
     var shield=equippedShield(player);
+    var activeCh=activeCharacter(player);
+    var charElemIdx=AVATAR_ELEMENT[activeCh.avatar];
+    var charElem=ELEMENTS[charElemIdx];
     var wV=matchup(weapon.element,enemy.element);
     var sV=matchup(shield?shield.element:null,enemy.element);
-    var wLabel=matchupLabel(wV), sLabel=matchupLabel(sV);
+    var cV=matchup(charElemIdx,enemy.element);
+    var wLabel=matchupLabel(wV), sLabel=matchupLabel(sV), cLabel=matchupLabel(cV);
+    var charStage=stageForCharacter(activeCh);
     typeInfo.style.display='block';
     typeInfo.innerHTML =
       '<div>'+bossElem.emoji+' '+enemy.name+' is a <b>'+bossElem.name+'</b>-type boss</div>'+
+      '<div style="color:'+cLabel.color+';">'+activeCh.avatar+' '+escapeHtml(charStage.title)+' '+charElem.emoji+' '+charElem.name+' — <b>'+cLabel.text+'</b></div>'+
       '<div style="color:'+wLabel.color+';">'+weapon.emoji+' '+escapeHtml(weapon.name)+(weapon.element!=null?elementChip(weapon.element):'')+' — <b>'+wLabel.text+'</b></div>'+
       '<div style="color:'+sLabel.color+';">'+(shield?(shield.emoji+' '+escapeHtml(shield.name)+elementChip(shield.element)+' — <b>'+sLabel.text+'</b>'):'🚫 No shield equipped')+'</div>'+
-      '<button class="btn ghost" id="btnPreviewGear" style="margin-top:8px;font-size:.72rem;padding:6px 12px;">🎒 Change Gear</button>';
+      '<div class="btnrow" style="justify-content:center;margin-top:8px;">'+
+      '<button class="btn ghost" id="btnPreviewCharacter" style="font-size:.72rem;padding:6px 12px;">🐾 Change Character</button>'+
+      '<button class="btn ghost" id="btnPreviewGear" style="font-size:.72rem;padding:6px 12px;">🎒 Change Gear</button>'+
+      '</div>';
     var gearBtn=el('btnPreviewGear');
     if(gearBtn) gearBtn.addEventListener('click',function(){ el('overlayPreview').classList.remove('active'); renderGear(); el('overlayGear').classList.add('active'); });
+    var charBtn=el('btnPreviewCharacter');
+    if(charBtn) charBtn.addEventListener('click',function(){ el('overlayPreview').classList.remove('active'); goToCharacter(); });
   } else {
     typeInfo.style.display='none'; typeInfo.innerHTML='';
   }
@@ -1852,8 +2027,9 @@ function startLevel(worldId,subKind){
   var worldMult=combat?worldPowerMult(worldId):1;
   var maxHp = (subKind==='boss'?7:5) + power.hpBonus;
   var bossElem = (isBoss && enemyDef && enemyDef.element!=null) ? enemyDef.element : null;
-  var offenseMult = 1 + 0.3*matchup(weapon.element,bossElem);
-  var defenseMult = 1 - 0.3*matchup(shield?shield.element:null,bossElem);
+  var charElem = AVATAR_ELEMENT[activeCharacter(player).avatar];
+  var offenseMult = Math.max(0.5,Math.min(1.7, 1 + 0.3*matchup(weapon.element,bossElem) + 0.15*matchup(charElem,bossElem)));
+  var defenseMult = Math.max(0.4,Math.min(1.6, 1 - 0.3*matchup(shield?shield.element:null,bossElem) - 0.15*matchup(charElem,bossElem)));
 
   playState={
     worldId:worldId, subKind:subKind, level:level, enemyDef:enemyDef, combat:combat, diff:diff,
@@ -2179,6 +2355,11 @@ function finishLevel(kind){
     }
   }
 
+  var newAvatar=null;
+  if(playState.subKind==='boss' && passed && !prev.passed){
+    newAvatar=Object.keys(AVATAR_UNLOCK_WORLD).find(function(a){return AVATAR_UNLOCK_WORLD[a]===playState.worldId;}) || null;
+  }
+
   var goldEarned=0;
   if(kind==='win'){
     var base = playState.subKind==='boss'?25:10;
@@ -2202,11 +2383,11 @@ function finishLevel(kind){
   saveData();
 
   pendingNext = passed ? getNextStage(playState.worldId,playState.subKind) : null;
-  showResult(kind,stars,wpm,acc,Math.round(elapsedSec),passed,newBadges,newGear,goldEarned,clearMult,gemsEarned);
+  showResult(kind,stars,wpm,acc,Math.round(elapsedSec),passed,newBadges,newGear,goldEarned,clearMult,gemsEarned,newAvatar);
 }
 
 /* ================= RESULT ================= */
-function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarned,clearMult,gemsEarned){
+function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarned,clearMult,gemsEarned,newAvatar){
   var enemyName = playState.enemyDef?playState.enemyDef.name:null;
   el('resultEyebrow').textContent='World '+playState.worldId+' · '+STAGE_META[playState.subKind].label;
   var title;
@@ -2231,6 +2412,11 @@ function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarn
     var gm=document.createElement('div'); gm.className='badge-banner reward-banner';
     gm.innerHTML='<span style="font-size:1.4rem;">💎</span><span><b>+'+gemsEarned+' Gems earned!</b><br>Spend them on shields in the Armory.</span>';
     banners.appendChild(gm);
+  }
+  if(newAvatar){
+    var av=document.createElement('div'); av.className='badge-banner reward-banner';
+    av.innerHTML='<span style="font-size:1.4rem;">'+newAvatar+'</span><span><b>You saved a '+speciesNameFor(newAvatar)+'!</b><br>Recruit it from your Roster.</span>';
+    banners.appendChild(av);
   }
   newBadges.forEach(function(b){
     var d=document.createElement('div'); d.className='badge-banner';
