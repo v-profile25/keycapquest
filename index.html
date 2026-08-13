@@ -1566,18 +1566,28 @@ function ensureMoreBossText(){
     span.textContent=ch; box.appendChild(span); playState.spans.push(span);
   });
 }
+/* Multiple keyboards (tutorial, level, challenge) render keys sharing
+   the same "k-a" style ids, which is invalid HTML for a bare
+   document.getElementById lookup -- it always resolves to whichever
+   copy appears first in the DOM. Every key lookup below is scoped to
+   a specific keyboard container to actually hit the visible one. */
+function keyInBoard(keyboardId,id){
+  var board=document.getElementById(keyboardId); if(!board) return null;
+  return board.querySelector('[id="'+id+'"]');
+}
 function updateNextHint(){
-  document.querySelectorAll('.key.next,.key.next-shift').forEach(function(k){k.classList.remove('next','next-shift');});
+  var kb=document.getElementById('keyboard');
+  if(kb) kb.querySelectorAll('.key.next,.key.next-shift').forEach(function(k){k.classList.remove('next','next-shift');});
   if(playState.idx>=playState.text.length){ renderHandDiagram(el('levelHands'),null); return; }
   var ch=playState.text[playState.idx];
   var id=keyId(ch);
-  if(id){ var k=document.getElementById(id); if(k) k.classList.add('next'); }
+  if(id){ var k=keyInBoard('keyboard',id); if(k) k.classList.add('next'); }
   var hint=el('fingerHint'); var fg=fingerFor(ch);
   var altFinger=null;
   if(needsShift(ch)){
     var useRightShift = LEFT_FINGERS.indexOf(fg)!==-1;
     var shiftId = useRightShift ? 'k-shiftR' : 'k-shiftL';
-    var sk=document.getElementById(shiftId); if(sk) sk.classList.add('next-shift');
+    var sk=keyInBoard('keyboard',shiftId); if(sk) sk.classList.add('next-shift');
     altFinger = useRightShift ? 'rp' : 'lp';
     hint.textContent=(fg?FINGER_LABEL[fg]:'—')+' + Shift';
   } else if(ch===' '){ hint.textContent='Thumb'; }
@@ -1588,11 +1598,11 @@ function updateNextHint(){
 }
 function flashKey(ch,ok){
   var id=keyId(ch); if(!id) return;
-  var k=document.getElementById(id); if(!k) return;
+  var k=keyInBoard('keyboard',id); if(!k) return;
   k.classList.add(ok?'pressed':'pressed-wrong');
   setTimeout(function(){ k.classList.remove('pressed','pressed-wrong'); },130);
 }
-function setShiftVisual(on){ ['k-shiftL','k-shiftR'].forEach(function(id){ var k=document.getElementById(id); if(k) k.classList.toggle('held',on); }); }
+function setShiftVisual(on){ ['k-shiftL','k-shiftR'].forEach(function(id){ var k=keyInBoard('keyboard',id); if(k) k.classList.toggle('held',on); }); }
 function beep(kind){
   if(!DATA.soundOn) return;
   try{
