@@ -141,6 +141,7 @@
   .profile-card .pname{font-weight:800;font-family:var(--font-display);font-size:1.05rem;}
   .profile-card .pstars{font-family:var(--font-mono);color:var(--f-ring);font-size:.85rem;}
   .profile-card .del{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:.75rem;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .profile-card .export-save{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);font-size:.75rem;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .profile-card.new{border-style:dashed;color:var(--ink-soft);}
   .profile-card.new .av{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:var(--surface-2);border:2px dashed var(--border);}
 
@@ -374,6 +375,9 @@
     <h1 class="hero-title">Who's typing today?</h1>
     <p class="hero-sub">Pick a player to jump back into the adventure, or add a new one.</p>
     <div class="profile-grid" id="profileGrid"></div>
+    <div class="btnrow" style="margin-top:16px;">
+      <button class="btn ghost" id="btnImportSave" style="font-size:.8rem;padding:8px 16px;">⬇️ Import Save Code</button>
+    </div>
 
     <div class="newform" id="newForm" style="display:none;">
       <h3 style="margin-bottom:14px;">New Player</h3>
@@ -669,6 +673,38 @@
     <h3 class="shop-heading">🛡️ Shields <span style="font-weight:400;font-size:.68rem;color:var(--ink-soft);text-transform:none;letter-spacing:0;">— bought with Gems, earned from boss fights</span></h3>
     <div class="badge-list" id="shieldList"></div>
     <div class="btnrow" style="justify-content:center;margin-top:18px;"><button class="btn ghost" id="btnCloseGear2">Close</button></div>
+  </div>
+</div>
+
+<!-- EXPORT SAVE OVERLAY -->
+<div class="overlay" id="overlayExportSave">
+  <div class="sheet" style="max-width:480px;position:relative;">
+    <button class="close-x" id="btnCloseExport">✕</button>
+    <span class="eyebrow">Save Code</span>
+    <h2>Move to Another Device</h2>
+    <p style="font-size:.85rem;">Copy this code, then open Keycap Quest on the other device and use "Import Save Code" to bring this player's progress over.</p>
+    <textarea id="exportCodeBox" readonly style="width:100%;height:110px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
+    <p id="exportCopyStatus" style="font-size:.78rem;color:var(--good);min-height:1.2em;margin-top:4px;"></p>
+    <div class="btnrow" style="justify-content:center;margin-top:10px;">
+      <button class="btn" id="btnCopyExportCode">📋 Copy Code</button>
+      <button class="btn ghost" id="btnCloseExport2">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT SAVE OVERLAY -->
+<div class="overlay" id="overlayImportSave">
+  <div class="sheet" style="max-width:480px;position:relative;">
+    <button class="close-x" id="btnCloseImport">✕</button>
+    <span class="eyebrow">Save Code</span>
+    <h2>Import From Another Device</h2>
+    <p style="font-size:.85rem;">Paste a save code exported from another device to bring that player's progress here.</p>
+    <textarea id="importCodeBox" placeholder="Paste code here..." style="width:100%;height:110px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
+    <p id="importStatus" style="font-size:.78rem;min-height:1.2em;margin-top:4px;"></p>
+    <div class="btnrow" style="justify-content:center;margin-top:10px;">
+      <button class="btn" id="btnDoImport">⬇️ Import</button>
+      <button class="btn ghost" id="btnCloseImport2">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -1312,6 +1348,7 @@ function renderProfiles(){
     var card=document.createElement('div');
     card.className='card profile-card'; card.tabIndex=0;
     card.innerHTML='<button class="del" data-id="'+p.id+'" title="Delete">✕</button>'+
+      '<button class="export-save" data-id="'+p.id+'" title="Export Save Code">⇪</button>'+
       '<div class="portrait portrait-pf" data-pf="'+p.id+'"></div>'+
       '<div class="pname">'+escapeHtml(p.name)+'</div>'+
       '<div class="pstars">🪙 '+(p.gold||0)+'</div>';
@@ -1342,6 +1379,14 @@ function renderProfiles(){
         DATA.players=DATA.players.filter(function(pp){return pp.id!==id;});
         saveData(); renderProfiles();
       }
+    });
+  });
+  grid.querySelectorAll('.export-save').forEach(function(btn){
+    btn.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var id=btn.getAttribute('data-id');
+      var p=DATA.players.find(function(pp){return pp.id===id;});
+      if(p) openExportSave(p);
     });
   });
   el('newForm').style.display='none';
@@ -1375,6 +1420,67 @@ el('btnCreate').addEventListener('click',function(){
     createdAt:Date.now()
   };
   DATA.players.push(p); DATA.lastPlayerId=p.id; saveData(); goToTutorial();
+});
+
+/* ================= SAVE CODE EXPORT / IMPORT =================
+   No backend -- a save code is just this one player's JSON, base64'd.
+   Copy it on one device, paste it into "Import Save Code" on another. */
+function encodeSaveCode(obj){
+  var json=JSON.stringify(obj);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+function decodeSaveCode(code){
+  var json=decodeURIComponent(escape(atob(code.trim())));
+  return JSON.parse(json);
+}
+function openExportSave(player){
+  el('exportCodeBox').value=encodeSaveCode(player);
+  el('exportCopyStatus').textContent='';
+  el('overlayExportSave').classList.add('active');
+}
+el('btnCloseExport').addEventListener('click',function(){ el('overlayExportSave').classList.remove('active'); });
+el('btnCloseExport2').addEventListener('click',function(){ el('overlayExportSave').classList.remove('active'); });
+el('btnCopyExportCode').addEventListener('click',function(){
+  var box=el('exportCodeBox');
+  box.select(); box.setSelectionRange(0,99999);
+  var status=el('exportCopyStatus');
+  var done=function(ok){ status.textContent = ok ? '✓ Copied!' : 'Couldn\'t auto-copy — select the text above and copy it manually.'; };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(box.value).then(function(){done(true);},function(){
+      try{ done(document.execCommand('copy')); }catch(e){ done(false); }
+    });
+  } else {
+    try{ done(document.execCommand('copy')); }catch(e){ done(false); }
+  }
+});
+
+el('btnImportSave').addEventListener('click',function(){
+  el('importCodeBox').value=''; el('importStatus').textContent='';
+  el('overlayImportSave').classList.add('active');
+});
+el('btnCloseImport').addEventListener('click',function(){ el('overlayImportSave').classList.remove('active'); });
+el('btnCloseImport2').addEventListener('click',function(){ el('overlayImportSave').classList.remove('active'); });
+el('btnDoImport').addEventListener('click',function(){
+  var status=el('importStatus');
+  var code=el('importCodeBox').value;
+  if(!code.trim()){ status.style.color='var(--bad)'; status.textContent='Paste a save code first.'; return; }
+  var player;
+  try{ player=decodeSaveCode(code); }catch(e){ player=null; }
+  if(!player || typeof player!=='object' || !player.id || !player.name){
+    status.style.color='var(--bad)'; status.textContent='That code doesn\'t look valid — check you copied the whole thing.';
+    return;
+  }
+  var existingIdx=DATA.players.findIndex(function(p){return p.id===player.id;});
+  if(existingIdx!==-1){
+    if(!window.confirm('This will overwrite the existing save for "'+DATA.players[existingIdx].name+'" on this device with the imported one. Continue?')) return;
+    DATA.players[existingIdx]=player;
+  } else {
+    DATA.players.push(player);
+  }
+  DATA.lastPlayerId=player.id;
+  saveData();
+  el('overlayImportSave').classList.remove('active');
+  renderProfiles();
 });
 
 /* ================= MAP SCREEN ================= */
