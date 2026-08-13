@@ -22,3 +22,15 @@ python3 -m http.server 8000
 ```
 
 then visit `http://localhost:8000/index.html`.
+
+## Testing
+
+A small Playwright smoke suite lives in `tests/` (dev-only -- the game
+itself still has zero dependencies). It drives the app through the DOM
+like a real player, plus direct `localStorage` seeding for fixtures like
+gold/gems/boss-clears.
+
+```
+npm install
+npm test
+```

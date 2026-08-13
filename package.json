@@ -1,0 +1,11 @@
+{
+  "name": "keycapquest",
+  "private": true,
+  "description": "Keycap Quest: a typing game. The game itself (index.html) has zero dependencies -- these are dev-only, for the tests/ smoke suite.",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
