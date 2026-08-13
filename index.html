@@ -537,7 +537,7 @@
       <div><div class="v" id="resWpm">0</div><div class="k">WPM</div></div>
       <div><div class="v" id="resAcc">0%</div><div class="k">Accuracy</div></div>
       <div><div class="v" id="resTime">0s</div><div class="k">Time</div></div>
-      <div><div class="v" id="resGold">+0</div><div class="k">Gold</div></div>
+      <div><div class="v" id="resGold">+0</div><div class="k" id="resGoldNote">Gold</div></div>
     </div>
     <div id="badgeBanners"></div>
     <div class="btnrow" style="justify-content:center;">
@@ -734,6 +734,14 @@ var DIFFICULTIES=[
 function currentDifficulty(player){
   var id=(player&&player.difficulty)||'normal';
   return DIFFICULTIES.find(function(d){return d.id===id;})||DIFFICULTIES[1];
+}
+
+/* Gold payout shrinks fast on repeat clears of the same stage, so grinding
+   one easy level isn't a better strategy than progressing. Resets never —
+   it's per stage, forever, same as stars/bestWpm. */
+var GOLD_DIMINISH_CURVE=[1,0.5,0.25,0.1];
+function goldMultiplier(timesCleared){
+  return GOLD_DIMINISH_CURVE[Math.min(timesCleared||0,GOLD_DIMINISH_CURVE.length-1)];
 }
 
 function getSub(p,worldId,subKind){ return p.subProgress && p.subProgress[worldId] ? p.subProgress[worldId][subKind] : null; }
@@ -1487,16 +1495,19 @@ function finishLevel(kind){
 
   var player=getCurrentPlayer();
   var world=ensureSub(player,playState.worldId);
-  var prev = world[playState.subKind] || {stars:0,bestWpm:0,bestAcc:0,attempts:0,passed:false};
+  var prev = world[playState.subKind] || {stars:0,bestWpm:0,bestAcc:0,attempts:0,passed:false,timesCleared:0};
 
   var passed, stars;
   if(kind==='loss'){ passed=false; stars=0; }
   else if(kind==='win'){ passed=true; stars=computeStars(playState.targetWpm,wpm,acc); }
   else { stars=computeStars(playState.targetWpm,wpm,acc); passed = stars>=1; }
 
+  var clearMult=goldMultiplier(prev.timesCleared);
+
   world[playState.subKind] = {
     stars: Math.max(prev.stars, stars), bestWpm: Math.max(prev.bestWpm, wpm), bestAcc: Math.max(prev.bestAcc, acc),
-    attempts: prev.attempts+1, passed: prev.passed || passed
+    attempts: prev.attempts+1, passed: prev.passed || passed,
+    timesCleared: (prev.timesCleared||0) + (passed?1:0)
   };
   player.totalCharsTyped=(player.totalCharsTyped||0)+playState.correct;
 
@@ -1517,10 +1528,10 @@ function finishLevel(kind){
   var goldEarned=0;
   if(kind==='win'){
     var base = playState.subKind==='boss'?25:10;
-    goldEarned = base + stars*(playState.subKind==='boss'?5:2);
+    goldEarned = Math.max(1, Math.round((base + stars*(playState.subKind==='boss'?5:2)) * clearMult));
     if(newGear) goldEarned+=25;
   } else if(kind==='complete' && passed){
-    goldEarned=2;
+    goldEarned = Math.max(1, Math.round(2 * clearMult));
   }
   player.gold=(player.gold||0)+goldEarned;
 
@@ -1531,11 +1542,11 @@ function finishLevel(kind){
   saveData();
 
   pendingNext = passed ? getNextStage(playState.worldId,playState.subKind) : null;
-  showResult(kind,stars,wpm,acc,Math.round(elapsedSec),passed,newBadges,newGear,goldEarned);
+  showResult(kind,stars,wpm,acc,Math.round(elapsedSec),passed,newBadges,newGear,goldEarned,clearMult);
 }
 
 /* ================= RESULT ================= */
-function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarned){
+function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarned,clearMult){
   var enemyName = playState.enemyDef?playState.enemyDef.name:null;
   el('resultEyebrow').textContent='World '+playState.worldId+' · '+STAGE_META[playState.subKind].label;
   var title;
@@ -1548,6 +1559,7 @@ function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarn
   for(var i=0;i<3;i++){ var s=document.createElement('span'); s.className='star'+(i<stars?' on':''); s.textContent='★'; starsRow.appendChild(s); }
   el('resWpm').textContent=wpm; el('resAcc').textContent=acc+'%'; el('resTime').textContent=timeSec+'s';
   el('resGold').textContent='+'+goldEarned;
+  el('resGoldNote').textContent = (clearMult<1) ? ('Gold ×'+Math.round(clearMult*100)+'%') : 'Gold';
 
   var banners=el('badgeBanners'); banners.innerHTML='';
   if(newGear){
