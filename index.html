@@ -99,6 +99,18 @@
   .portrait-lg .portrait-art{border-width:5px;}
   .portrait-lg .portrait-hat{font-size:3rem;top:-16%;}
   .portrait-lg .portrait-companion{width:46px;height:46px;font-size:1.8rem;bottom:-4%;right:-6%;}
+  /* ---------- hero size: freestanding figure on a plateau, no circular crop ---------- */
+  .portrait-hero{overflow:visible;}
+  .portrait-hero .hero-plateau{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);width:70%;height:14%;border-radius:50%;background:radial-gradient(ellipse at center, var(--frame-color,var(--accent)) 0%, color-mix(in srgb, var(--frame-color,var(--accent)) 45%, transparent) 45%, transparent 75%);opacity:.7;filter:blur(3px);z-index:0;animation:plateauPulse 3.4s ease-in-out infinite;}
+  .portrait-hero .portrait-aura{inset:8%;opacity:.3;filter:blur(10px);}
+  @keyframes plateauPulse{0%,100%{opacity:.6;transform:translateX(-50%) scale(1);}50%{opacity:.85;transform:translateX(-50%) scale(1.06);}}
+  .portrait-hero .portrait-avatar{background:none;border:none;box-shadow:none;font-size:13rem;position:relative;z-index:2;align-items:flex-end;padding-bottom:4%;}
+  .portrait-hero .portrait-art{border:none;border-radius:0;box-shadow:none;background:none;object-fit:contain;object-position:center bottom;position:relative;z-index:2;filter:drop-shadow(0 14px 10px rgba(0,0,0,.4));-webkit-mask-image:radial-gradient(ellipse 60% 58% at center 42%, black 58%, transparent 94%);mask-image:radial-gradient(ellipse 60% 58% at center 42%, black 58%, transparent 94%);}
+  .portrait-hero .portrait-hat{font-size:5.2rem;top:-10%;}
+  .portrait-hero .portrait-companion{width:76px;height:76px;font-size:2.4rem;bottom:2%;right:0%;border-width:3px;z-index:3;}
+  .portrait-hero .portrait-spark{font-size:2.6rem;}
+  .portrait-hero .portrait-wings{width:135%;height:115%;}
+  .portrait-hero .portrait-mecha-ring{inset:2%;}
   /* growth-stage accents (pup / grown / mecha) */
   .portrait-mecha-ring{position:absolute;inset:-12%;border-radius:50%;border:3px dashed var(--frame-color);z-index:1;animation:portraitSpin 7s linear infinite;}
   @keyframes portraitSpin{to{transform:rotate(360deg);}}
@@ -295,11 +307,11 @@
   .tut-tips li{margin-bottom:2px;}
 
   /* ---------- character / shop screen ---------- */
-  .char-hero{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin:22px 0 8px;}
-  .char-card{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:3px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px 0;box-shadow:var(--key-shadow);}
-  .char-card-plate{margin:14px -20px 0;padding:7px 18px 9px;border-radius:0 0 16px 16px;font-family:var(--font-display);font-weight:800;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;text-align:center;color:#1a1d22;background:var(--border);}
-  .char-info{display:flex;flex-direction:column;gap:9px;padding-top:6px;}
-  .char-stats{display:flex;gap:20px;flex-wrap:wrap;}
+  .char-hero-stage{position:relative;max-width:420px;margin:26px auto 4px;padding-top:20px;}
+  .char-hero-stage .portrait-hero{width:100%;height:340px;margin:0 auto;}
+  .char-card-plate{position:relative;z-index:4;width:fit-content;margin:8px auto 0;padding:7px 18px 9px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;text-align:center;color:#1a1d22;background:var(--border);box-shadow:var(--key-shadow);}
+  .char-info{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:10px;}
+  .char-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
   .char-stats div{display:flex;flex-direction:column;font-family:var(--font-mono);}
   .char-stats b{font-size:1.2rem;} .char-stats span{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);}
   .char-weapon{font-size:.9rem;color:var(--ink-soft);}
@@ -441,19 +453,17 @@
       <div><span class="eyebrow">Character</span><h2 id="charTitle">Name</h2><div class="char-weapon" id="charEquippedTitle" style="display:none;"></div></div>
       <button class="btn ghost" id="btnCharBack">← Map</button>
     </div>
-    <div class="char-hero">
-      <div class="char-card" id="charCard">
-        <div class="portrait portrait-lg" id="charPortrait"></div>
-        <div class="char-card-plate" id="charRank">Rookie Typist</div>
+    <div class="char-hero-stage" id="charHeroStage">
+      <div class="portrait portrait-hero" id="charPortrait"></div>
+      <div class="char-card-plate" id="charRank">Rookie Typist</div>
+    </div>
+    <div class="char-info">
+      <div class="char-stats">
+        <div><b id="charWorlds">0/12</b><span>Worlds Cleared</span></div>
+        <div><b id="charStarsTotal">0</b><span>Stars</span></div>
+        <div><b id="charGold">0</b><span>🪙 Gold</span></div>
       </div>
-      <div class="char-info">
-        <div class="char-stats">
-          <div><b id="charWorlds">0/12</b><span>Worlds Cleared</span></div>
-          <div><b id="charStarsTotal">0</b><span>Stars</span></div>
-          <div><b id="charGold">0</b><span>🪙 Gold</span></div>
-        </div>
-        <div class="char-weapon">Weapon: <b id="charWeapon">👊 Bare Hands</b></div>
-      </div>
+      <div class="char-weapon">Weapon: <b id="charWeapon">👊 Bare Hands</b></div>
     </div>
     <div class="growth-panel" id="growthPanel">
       <div class="growth-head"><span id="growthStageTitle">Pup</span><span id="growthMeterText">0 / 40</span></div>
@@ -1128,10 +1138,12 @@ function renderPortrait(container,player,size){
   container.style.setProperty('--aura-b',aura.b);
   container.style.setProperty('--frame-color',rank.frame);
   container.style.setProperty('--elem-color',elemColor);
+  var plateauHtml = size==='hero' ? '<div class="hero-plateau"></div>' : '';
 
   if(art){
     container.innerHTML =
-      '<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>'+
+      plateauHtml+
+      (size==='hero'?'':'<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>')+
       '<img class="portrait-art" src="'+art+'" alt="'+escapeHtml(stage.title)+'" loading="lazy">'+
       (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
       (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
@@ -1147,6 +1159,7 @@ function renderPortrait(container,player,size){
                 : '';
   var armorHtml = stage.ring==='mecha' ? buildArmorSVG(elemColor) : '';
   container.innerHTML =
+    plateauHtml+
     '<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>'+
     ringsHtml+
     wingsHtml+
@@ -1398,13 +1411,12 @@ function renderCharacterScreen(){
   } else titleEl.style.display='none';
   el('charRank').textContent=rank.title;
   el('charRank').style.background=rank.frame;
-  el('charCard').style.borderColor=rank.frame;
   el('charWorlds').textContent=bossesCleared(p)+'/'+LEVELS.length;
   el('charStarsTotal').textContent=totalStars(p);
   el('charGold').textContent=p.gold||0;
   var w=equippedWeapon(p);
   el('charWeapon').textContent=w.emoji+' '+w.name;
-  renderPortrait(el('charPortrait'),p,'lg');
+  renderPortrait(el('charPortrait'),p,'hero');
 
   var stage=stageFor(p);
   var g=p.growth||0;
