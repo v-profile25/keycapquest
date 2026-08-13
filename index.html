@@ -519,6 +519,10 @@
     <p class="hero-sub">Feed your active character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
     <div class="shop-grid" id="shopFood"></div>
 
+    <h3 class="shop-heading">🎒 Battle Items</h3>
+    <p class="hero-sub">One-time-use items for a tough boss fight. Buy them here, then bring them along from the fight's preview screen — each is used up the moment it helps you win.</p>
+    <div class="shop-grid" id="shopConsumables"></div>
+
     <p class="hero-sub" style="margin-top:26px;">Cosmetics below are just for looks — tap to buy with gold, tap again to equip or unequip. Your rank border is earned by clearing worlds.</p>
 
     <h3 class="shop-heading">🧢 Hats</h3>
@@ -541,6 +545,7 @@
       </div>
     </div>
 
+    <div class="btnrow" id="activeConsumablesRow" style="justify-content:center;gap:6px;display:none;"></div>
     <div class="arena" id="arena" style="display:none;">
       <div class="arena-fighters">
         <div class="fighter player">
@@ -657,6 +662,10 @@
       <div id="pvPowerWrap" style="display:none;">Enemy Power<br><b id="pvPower">×1.0</b></div>
     </div>
     <div id="pvTypeInfo" style="display:none;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin:10px 0;font-size:.82rem;line-height:1.7;"></div>
+    <div id="pvConsumables" style="display:none;text-align:left;margin:10px 0;">
+      <div class="hero-sub" style="margin:0 0 6px;font-size:.75rem;">🎒 Bring a battle item (tap to toggle):</div>
+      <div class="shop-grid" id="pvConsumablesGrid" style="grid-template-columns:repeat(auto-fill,minmax(90px,1fr));"></div>
+    </div>
     <div class="btnrow" style="justify-content:center;">
       <button class="btn big" id="btnStartLevel">Start ▸</button>
       <button class="btn ghost" id="btnClosePreview">Cancel</button>
@@ -1011,60 +1020,74 @@ var SHIELDS=[
 
 var HATS=[
   {id:'cap',name:'Cap',emoji:'🧢',price:15},
-  {id:'party',name:'Party Hat',emoji:'🎉',price:25},
-  {id:'hard',name:'Hard Hat',emoji:'⛑️',price:35},
-  {id:'cowboy',name:'Cowboy Hat',emoji:'🤠',price:40},
-  {id:'top',name:'Top Hat',emoji:'🎩',price:50},
-  {id:'graduate',name:'Grad Cap',emoji:'🎓',price:55},
-  {id:'flower',name:'Flower Crown',emoji:'🌸',price:65},
-  {id:'wizard',name:'Wizard',emoji:'🧙',price:80},
-  {id:'halo',name:'Halo',emoji:'😇',price:95},
-  {id:'pumpkin',name:'Pumpkin Cap',emoji:'🎃',price:110},
-  {id:'crown',name:'Crown',emoji:'👑',price:150},
-  {id:'rainbow',name:'Rainbow Crown',emoji:'🌈',price:200}
+  {id:'party',name:'Party Hat',emoji:'🎉',price:25,unlockWorld:2},
+  {id:'hard',name:'Hard Hat',emoji:'⛑️',price:35,unlockWorld:4},
+  {id:'cowboy',name:'Cowboy Hat',emoji:'🤠',price:40,unlockWorld:6},
+  {id:'top',name:'Top Hat',emoji:'🎩',price:50,unlockWorld:8},
+  {id:'graduate',name:'Grad Cap',emoji:'🎓',price:55,unlockWorld:10},
+  {id:'flower',name:'Flower Crown',emoji:'🌸',price:65,unlockWorld:13},
+  {id:'wizard',name:'Wizard',emoji:'🧙',price:80,unlockWorld:16},
+  {id:'halo',name:'Halo',emoji:'😇',price:95,unlockWorld:20},
+  {id:'pumpkin',name:'Pumpkin Cap',emoji:'🎃',price:110,unlockWorld:35},
+  {id:'crown',name:'Crown',emoji:'👑',price:150,unlockWorld:60},
+  {id:'rainbow',name:'Rainbow Crown',emoji:'🌈',price:200,unlockWorld:90}
 ];
 var COMPANIONS=[
-  {id:'chick',name:'Chick',emoji:'🐤',price:15},
-  {id:'butterfly',name:'Butterfly',emoji:'🦋',price:25},
-  {id:'fish',name:'Fish',emoji:'🐠',price:30},
-  {id:'turtle',name:'Turtle',emoji:'🐢',price:35},
-  {id:'bee',name:'Bee',emoji:'🐝',price:45},
-  {id:'fox',name:'Fox',emoji:'🦊',price:55},
-  {id:'owl',name:'Owl',emoji:'🦉',price:65},
-  {id:'penguin',name:'Penguin',emoji:'🐧',price:75},
-  {id:'unicorn',name:'Unicorn',emoji:'🦄',price:100},
-  {id:'octopus',name:'Octopus',emoji:'🐙',price:120},
-  {id:'ghost',name:'Ghost',emoji:'👻',price:140},
-  {id:'dragon',name:'Dragon',emoji:'🐉',price:220}
+  {id:'chick',name:'Chick',emoji:'🐤',price:15,hpBonus:1},
+  {id:'butterfly',name:'Butterfly',emoji:'🦋',price:25,unlockWorld:2,hpBonus:1},
+  {id:'fish',name:'Fish',emoji:'🐠',price:30,unlockWorld:4,hpBonus:1},
+  {id:'turtle',name:'Turtle',emoji:'🐢',price:35,unlockWorld:6,hpBonus:2},
+  {id:'bee',name:'Bee',emoji:'🐝',price:45,unlockWorld:8,hpBonus:2},
+  {id:'fox',name:'Fox',emoji:'🦊',price:55,unlockWorld:10,hpBonus:2},
+  {id:'owl',name:'Owl',emoji:'🦉',price:65,unlockWorld:13,hpBonus:2},
+  {id:'penguin',name:'Penguin',emoji:'🐧',price:75,unlockWorld:16,hpBonus:2},
+  {id:'unicorn',name:'Unicorn',emoji:'🦄',price:100,unlockWorld:20,hpBonus:3},
+  {id:'octopus',name:'Octopus',emoji:'🐙',price:120,unlockWorld:35,hpBonus:3},
+  {id:'ghost',name:'Ghost',emoji:'👻',price:140,unlockWorld:60,hpBonus:3},
+  {id:'dragon',name:'Dragon',emoji:'🐉',price:220,unlockWorld:90,hpBonus:4}
 ];
 var AURAS=[
   {id:'sunny',name:'Sunny',a:'#ffe066',b:'#ffd43b',price:20},
-  {id:'ocean',name:'Ocean',a:'#66d9ef',b:'#4dabf7',price:20},
-  {id:'candy',name:'Candy',a:'#ffb3ec',b:'#ff6fc8',price:30},
-  {id:'forest',name:'Forest',a:'#8ce99a',b:'#51cf66',price:35},
-  {id:'ember',name:'Ember',a:'#ffa94d',b:'#ff6b6b',price:35},
-  {id:'toxic',name:'Toxic',a:'#d9ff5c',b:'#69db3c',price:50},
-  {id:'royal',name:'Royal',a:'#b197fc',b:'#7c5cff',price:70},
-  {id:'shadow',name:'Shadow',a:'#6f5b9e',b:'#241b38',price:90},
-  {id:'golden',name:'Golden',a:'#fff3bf',b:'#f2c94c',price:140},
-  {id:'prism',name:'Prism',a:'#ff6b6b',b:'#4dabf7',price:220}
+  {id:'ocean',name:'Ocean',a:'#66d9ef',b:'#4dabf7',price:20,unlockWorld:3},
+  {id:'candy',name:'Candy',a:'#ffb3ec',b:'#ff6fc8',price:30,unlockWorld:6},
+  {id:'forest',name:'Forest',a:'#8ce99a',b:'#51cf66',price:35,unlockWorld:9},
+  {id:'ember',name:'Ember',a:'#ffa94d',b:'#ff6b6b',price:35,unlockWorld:12},
+  {id:'toxic',name:'Toxic',a:'#d9ff5c',b:'#69db3c',price:50,unlockWorld:15},
+  {id:'royal',name:'Royal',a:'#b197fc',b:'#7c5cff',price:70,unlockWorld:20},
+  {id:'shadow',name:'Shadow',a:'#6f5b9e',b:'#241b38',price:90,unlockWorld:40},
+  {id:'golden',name:'Golden',a:'#fff3bf',b:'#f2c94c',price:140,unlockWorld:65},
+  {id:'prism',name:'Prism',a:'#ff6b6b',b:'#4dabf7',price:220,unlockWorld:90}
 ];
+/* Titles are achievement-flavored by name already, so they unlock via the
+   existing BADGES checks (accuracy/speed/volume/mastery) instead of world
+   number -- "why" they're locked matches what they're called. */
 var TITLES=[
-  {id:'speedy',name:'Speedy',emoji:'⚡',price:10},
-  {id:'sharp',name:'Sharpshooter',emoji:'🎯',price:20},
-  {id:'steady',name:'Steady Hands',emoji:'🖐️',price:20},
-  {id:'brave',name:'Brave',emoji:'🦁',price:30},
-  {id:'ace',name:'Keyboard Ace',emoji:'🃏',price:50},
-  {id:'legend',name:'Legend',emoji:'🌟',price:90},
-  {id:'unstoppable',name:'Unstoppable',emoji:'💥',price:130},
-  {id:'mythic',name:'Mythic Typist',emoji:'👑',price:200}
+  {id:'speedy',name:'Speedy',emoji:'⚡',price:10,unlockBadge:'first_victory'},
+  {id:'sharp',name:'Sharpshooter',emoji:'🎯',price:20,unlockBadge:'speed_racer'},
+  {id:'steady',name:'Steady Hands',emoji:'🖐️',price:20,unlockBadge:'perfectionist'},
+  {id:'brave',name:'Brave',emoji:'🦁',price:30,unlockBadge:'untouchable'},
+  {id:'ace',name:'Keyboard Ace',emoji:'🃏',price:50,unlockBadge:'home_hero'},
+  {id:'legend',name:'Legend',emoji:'🌟',price:90,unlockBadge:'reach_master'},
+  {id:'unstoppable',name:'Unstoppable',emoji:'💥',price:130,unlockBadge:'marathon'},
+  {id:'mythic',name:'Mythic Typist',emoji:'👑',price:200,unlockBadge:'champion'}
 ];
 var FOODS=[
   {id:'snack',name:'Snack',emoji:'🍪',price:8,growth:6},
-  {id:'apple',name:'Apple',emoji:'🍎',price:15,growth:12},
-  {id:'meal',name:'Big Meal',emoji:'🍖',price:30,growth:25},
-  {id:'feast',name:'Feast',emoji:'🍗',price:60,growth:55},
-  {id:'fuel',name:'Mecha Fuel',emoji:'🔋',price:100,growth:100}
+  {id:'apple',name:'Apple',emoji:'🍎',price:15,growth:12,unlockWorld:3},
+  {id:'meal',name:'Big Meal',emoji:'🍖',price:30,growth:25,unlockWorld:6},
+  {id:'feast',name:'Feast',emoji:'🍗',price:60,growth:55,unlockWorld:10},
+  {id:'fuel',name:'Mecha Fuel',emoji:'🔋',price:100,growth:100,unlockWorld:15}
+];
+
+/* One-time-use items for a tough boss fight -- bought into player.inventory
+   (a simple id->count map), then picked in the boss preview overlay. Picking
+   one consumes it from inventory immediately and folds its effect into
+   playState for that single attempt; a loss still consumes it. */
+var CONSUMABLES=[
+  {id:'power_up',name:'Power Surge',emoji:'🔋',price:40,desc:'+50% damage this boss fight.'},
+  {id:'invincible',name:'Aegis Shield',emoji:'🛡️✨',price:50,desc:'Mistakes cost half as much this boss fight.'},
+  {id:'poison',name:'Poison Dart',emoji:'☠️',price:35,desc:'The boss pulls back 40% slower this fight.'},
+  {id:'revive',name:'Second Wind',emoji:'💖',price:60,desc:"Auto-revive once if you'd lose this boss fight."}
 ];
 
 var RANKS=[
@@ -1101,10 +1124,14 @@ function currentDifficulty(player){
    versus how strong the WORLD's enemies get as the campaign goes on.
    Keeping pace with feeding keeps fights winnable; falling behind
    makes late-game bosses genuinely punishing. */
+function equippedCompanion(player){
+  return player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
+}
 function playerCombatPower(player){
   var stage=stageFor(player);
+  var companion=equippedCompanion(player);
   return {
-    hpBonus: stage.index,
+    hpBonus: stage.index + (companion?companion.hpBonus:0),
     pushBonus: Math.floor(stage.index/2),
     mistakeResist: Math.min(0.4, stage.index*0.045)
   };
@@ -1271,6 +1298,27 @@ function isAvatarUnlocked(player,avatar){
   var boss=getSub(player,worldId,'boss');
   return !!(boss && boss.passed);
 }
+/* Shared unlock gate for shop items (hats/companions/auras/food gate on
+   world progress; titles gate on an achievement badge) -- same shape as
+   isAvatarUnlocked so items can be locked before they're purchasable. */
+function isCosmeticUnlocked(player,item){
+  if(item.unlockWorld){
+    var boss=getSub(player,item.unlockWorld,'boss');
+    return !!(boss && boss.passed);
+  }
+  if(item.unlockBadge){
+    return !!(player.badges && player.badges.indexOf(item.unlockBadge)!==-1);
+  }
+  return true;
+}
+function cosmeticLockLabel(item){
+  if(item.unlockWorld) return '🔒 World '+item.unlockWorld;
+  if(item.unlockBadge){
+    var b=BADGES.find(function(x){return x.id===item.unlockBadge;});
+    return '🔒 '+(b?b.name+' badge':'Locked');
+  }
+  return '🔒 Locked';
+}
 
 /* ---------- character roster ----------
    A player owns 1+ characters (creatures), each with its own growth/
@@ -1290,7 +1338,7 @@ function activeCharacter(player){
 }
 function rosterCost(player){
   var n=(player.characters||[activeCharacter(player)]).length;
-  return 100 + (n-1)*150;
+  return {gold: 100 + (n-1)*150, gems: 5 + (n-1)*5};
 }
 function recruitCharacter(avatarEmoji){
   var p=getCurrentPlayer(); if(!p) return false;
@@ -1298,8 +1346,8 @@ function recruitCharacter(avatarEmoji){
   if(!isAvatarUnlocked(p,avatarEmoji)) return false;
   if(p.characters.some(function(c){return c.avatar===avatarEmoji;})) return false;
   var cost=rosterCost(p);
-  if((p.gold||0)<cost) return false;
-  p.gold-=cost;
+  if((p.gold||0)<cost.gold || (p.gems||0)<cost.gems) return false;
+  p.gold-=cost.gold; p.gems-=cost.gems;
   var ch={id:'ch'+Date.now()+Math.floor(Math.random()*1000),avatar:avatarEmoji,growth:0,evolutionPath:null,createdAt:Date.now()};
   p.characters.push(ch);
   p.activeCharacterId=ch.id;
@@ -1617,7 +1665,7 @@ el('btnCreate').addEventListener('click',function(){
     totalCharsTyped:0, gold:0, gems:0, growth:0, evolutionPath:null,
     ownedHats:[], ownedCompanions:[], ownedAuras:[], ownedTitles:[], ownedShields:[],
     equippedHat:null, equippedCompanion:null, equippedAura:null, equippedTitle:null,
-    equippedWeaponWorldId:null, equippedShieldId:null, difficulty:'normal',
+    equippedWeaponWorldId:null, equippedShieldId:null, difficulty:'normal', inventory:{},
     createdAt:Date.now()
   };
   DATA.players.push(p); DATA.lastPlayerId=p.id; saveData(); goToTutorial();
@@ -1830,6 +1878,7 @@ function renderCharacterScreen(){
   renderShop('aura',AURAS,'shopAuras');
   renderShop('title',TITLES,'shopTitles');
   renderFoodShop();
+  renderConsumableShop();
 }
 /* ================= ROSTER ================= */
 function speciesNameFor(avatar){
@@ -1895,7 +1944,8 @@ function renderRoster(){
   });
   var recruitCard=document.createElement('div');
   recruitCard.className='shop-item';
-  recruitCard.innerHTML='<div class="semoji">➕</div><div class="sname">Recruit</div><div class="sprice">🪙 '+rosterCost(p)+'</div>';
+  var rc=rosterCost(p);
+  recruitCard.innerHTML='<div class="semoji">➕</div><div class="sname">Recruit</div><div class="sprice">🪙 '+rc.gold+' · 💎 '+rc.gems+'</div>';
   recruitCard.addEventListener('click',openRecruitOverlay);
   grid.appendChild(recruitCard);
 }
@@ -1903,7 +1953,9 @@ function openRecruitOverlay(){
   var p=getCurrentPlayer(); if(!p) return;
   activeCharacter(p);
   var cost=rosterCost(p);
-  el('recruitCostLine').innerHTML='Cost: <b>🪙 '+cost+'</b>'+((p.gold||0)<cost?' <span style="color:var(--bad);">— not enough gold</span>':'');
+  var shortGold=(p.gold||0)<cost.gold, shortGems=(p.gems||0)<cost.gems;
+  el('recruitCostLine').innerHTML='Cost: <b>🪙 '+cost.gold+' &nbsp; 💎 '+cost.gems+'</b>'+
+    ((shortGold||shortGems)?' <span style="color:var(--bad);">— not enough '+(shortGold&&shortGems?'gold or gems':shortGold?'gold':'gems')+'</span>':'');
   var ownedAvatars=p.characters.map(function(c){return c.avatar;});
   var picked=null;
   var box=el('recruitAvatarSwatches'); box.innerHTML='';
@@ -1922,7 +1974,7 @@ function openRecruitOverlay(){
         picked=a;
         box.querySelectorAll('.swatch-av').forEach(function(s){s.classList.remove('sel');});
         b.classList.add('sel');
-        doBtn.disabled=(p.gold||0)<cost;
+        doBtn.disabled=(p.gold||0)<cost.gold || (p.gems||0)<cost.gems;
       });
     }
     box.appendChild(b);
@@ -1944,20 +1996,52 @@ function renderFoodShop(){
   var p=getCurrentPlayer();
   var grid=el('shopFood'); grid.innerHTML='';
   FOODS.forEach(function(item){
+    var unlocked=isCosmeticUnlocked(p,item);
     var afford=(p.gold||0)>=item.price;
     var card=document.createElement('div');
-    card.className='shop-item'+(afford?'':' locked');
-    card.innerHTML='<div class="semoji">'+item.emoji+'</div><div class="sname">'+escapeHtml(item.name)+'</div><div class="sprice">🪙 '+item.price+'</div>';
+    card.className='shop-item'+((afford&&unlocked)?'':' locked');
+    var sub = unlocked ? ('🪙 '+item.price) : cosmeticLockLabel(item);
+    card.innerHTML='<div class="semoji">'+item.emoji+'</div><div class="sname">'+escapeHtml(item.name)+'</div><div class="sprice">'+sub+'</div>';
     card.addEventListener('click',function(){
-      if(!afford) return;
+      if(!afford || !unlocked) return;
       feedPlayer(item);
     });
     grid.appendChild(card);
   });
 }
+function renderConsumableShop(){
+  var p=getCurrentPlayer();
+  p.inventory=p.inventory||{};
+  var grid=el('shopConsumables'); grid.innerHTML='';
+  CONSUMABLES.forEach(function(item){
+    var count=p.inventory[item.id]||0;
+    var afford=(p.gold||0)>=item.price;
+    var card=document.createElement('div');
+    card.className='shop-item'+(afford?'':' locked');
+    card.title=item.desc;
+    var sub='🪙 '+item.price+(count>0?' · own '+count:'');
+    card.innerHTML='<div class="semoji">'+item.emoji+'</div><div class="sname">'+escapeHtml(item.name)+'</div><div class="sprice">'+sub+'</div>';
+    card.addEventListener('click',function(){
+      if(!afford) return;
+      buyConsumable(item.id);
+    });
+    grid.appendChild(card);
+  });
+}
+function buyConsumable(itemId){
+  var p=getCurrentPlayer();
+  var item=CONSUMABLES.find(function(i){return i.id===itemId;});
+  if(!item || (p.gold||0)<item.price) return;
+  p.gold-=item.price;
+  p.inventory=p.inventory||{};
+  p.inventory[itemId]=(p.inventory[itemId]||0)+1;
+  saveData();
+  refreshTopbar();
+  renderCharacterScreen();
+}
 function feedPlayer(item){
   var p=getCurrentPlayer();
-  if((p.gold||0)<item.price) return;
+  if((p.gold||0)<item.price || !isCosmeticUnlocked(p,item)) return;
   var ch=activeCharacter(p);
   var before=stageForCharacter(ch);
   p.gold-=item.price;
@@ -2028,16 +2112,18 @@ function renderShop(category,list,containerId){
   list.forEach(function(item){
     var have=owned.indexOf(item.id)!==-1;
     var isEq=equipped===item.id;
+    var unlocked=isCosmeticUnlocked(p,item);
     var afford=(p.gold||0)>=item.price;
     var card=document.createElement('div');
-    card.className='shop-item'+(isEq?' equipped':'')+((!have&&!afford)?' locked':'');
+    card.className='shop-item'+(isEq?' equipped':'')+((!have&&(!afford||!unlocked))?' locked':'');
     var visual = category==='aura'
       ? '<div class="aura-swatch" style="background:linear-gradient(135deg,'+item.a+','+item.b+')"></div>'
       : '<div class="semoji">'+item.emoji+'</div>';
-    var sub = have ? (isEq?'Equipped':'Tap to equip') : ('🪙 '+item.price);
+    var hpTag = (category==='companion' && item.hpBonus) ? (' · +'+item.hpBonus+'❤️') : '';
+    var sub = !unlocked ? cosmeticLockLabel(item) : (have ? ((isEq?'Equipped':'Tap to equip')+hpTag) : ('🪙 '+item.price+hpTag));
     card.innerHTML=visual+'<div class="sname">'+escapeHtml(item.name)+'</div><div class="sprice">'+sub+'</div>';
     card.addEventListener('click',function(){
-      if(!have && !afford) return;
+      if(!have && (!afford||!unlocked)) return;
       buyOrEquip(category,item.id);
     });
     grid.appendChild(card);
@@ -2051,7 +2137,7 @@ function buyOrEquip(category,itemId){
   player[keys.owned]=player[keys.owned]||[];
   var owned=player[keys.owned].indexOf(itemId)!==-1;
   if(!owned){
-    if((player.gold||0)<item.price) return;
+    if((player.gold||0)<item.price || !isCosmeticUnlocked(player,item)) return;
     player.gold-=item.price;
     player[keys.owned].push(itemId);
     player[keys.equip]=itemId;
@@ -2069,7 +2155,30 @@ el('btnTutorialClose').addEventListener('click',goToMap);
 el('btnTutorialDone').addEventListener('click',goToMap);
 
 /* ================= LEVEL PREVIEW ================= */
-var previewWorldId=null, previewSubKind=null;
+var previewWorldId=null, previewSubKind=null, previewSelectedConsumables={};
+function renderPreviewConsumables(){
+  var p=getCurrentPlayer();
+  p.inventory=p.inventory||{};
+  var wrap=el('pvConsumables'), grid=el('pvConsumablesGrid');
+  var anyOwned=CONSUMABLES.some(function(c){return (p.inventory[c.id]||0)>0;});
+  if(!anyOwned){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  grid.innerHTML='';
+  CONSUMABLES.forEach(function(item){
+    var count=p.inventory[item.id]||0;
+    if(count<=0) return;
+    var isSel=!!previewSelectedConsumables[item.id];
+    var card=document.createElement('div');
+    card.className='shop-item'+(isSel?' equipped':'');
+    card.title=item.desc;
+    card.innerHTML='<div class="semoji">'+item.emoji+'</div><div class="sname">'+escapeHtml(item.name)+'</div><div class="sprice">'+(isSel?'Selected':'own '+count)+'</div>';
+    card.addEventListener('click',function(){
+      previewSelectedConsumables[item.id]=!previewSelectedConsumables[item.id];
+      renderPreviewConsumables();
+    });
+    grid.appendChild(card);
+  });
+}
 function openPreview(worldId,subKind){
   var level=LEVELS.find(function(l){return l.id===worldId;});
   var meta=STAGE_META[subKind];
@@ -2126,6 +2235,10 @@ function openPreview(worldId,subKind){
     typeInfo.style.display='none'; typeInfo.innerHTML='';
   }
 
+  previewSelectedConsumables={};
+  if(subKind==='boss') renderPreviewConsumables();
+  else el('pvConsumables').style.display='none';
+
   el('overlayPreview').classList.add('active');
 }
 el('btnClosePreview').addEventListener('click',function(){ el('overlayPreview').classList.remove('active'); });
@@ -2157,6 +2270,23 @@ function startLevel(worldId,subKind){
   var offenseMult = Math.max(0.5,Math.min(1.7, 1 + 0.3*matchup(weapon.element,bossElem) + 0.15*matchup(charElem,bossElem)));
   var defenseMult = Math.max(0.4,Math.min(1.6, 1 - 0.3*matchup(shield?shield.element:null,bossElem) - 0.15*matchup(charElem,bossElem)));
 
+  var usedConsumables=[], poisonMult=1, reviveAvailable=false;
+  if(isBoss){
+    player.inventory=player.inventory||{};
+    Object.keys(previewSelectedConsumables).forEach(function(id){
+      if(!previewSelectedConsumables[id]) return;
+      if((player.inventory[id]||0)<=0) return;
+      player.inventory[id]--;
+      usedConsumables.push(id);
+      if(id==='power_up') offenseMult=Math.min(2.5,offenseMult*1.5);
+      if(id==='invincible') defenseMult=Math.max(0.15,defenseMult*0.5);
+      if(id==='poison') poisonMult=0.6;
+      if(id==='revive') reviveAvailable=true;
+    });
+    saveData();
+  }
+  previewSelectedConsumables={};
+
   playState={
     worldId:worldId, subKind:subKind, level:level, enemyDef:enemyDef, combat:combat, diff:diff,
     text:text, idx:0, correct:0, incorrect:0, combo:0, maxCombo:0,
@@ -2168,6 +2298,7 @@ function startLevel(worldId,subKind){
     offenseMult: offenseMult, defenseMult: defenseMult,
     power: power, worldMult: worldMult,
     fingerStats: emptyFingerStats(), missStreak: 0,
+    usedConsumables: usedConsumables, poisonMult: poisonMult, reviveAvailable: reviveAvailable, revivedUsed: false,
     targetWpm: effectiveTargetWpm(level,subKind,player)
   };
 
@@ -2260,7 +2391,11 @@ function finishFingerDrill(){
 }
 function renderArena(){
   var arena=el('arena');
-  if(!playState.combat){ arena.style.display='none'; return; }
+  if(!playState.combat){
+    arena.style.display='none';
+    var cr=el('activeConsumablesRow'); cr.style.display='none'; cr.innerHTML='';
+    return;
+  }
   arena.style.display='flex';
   var player=getCurrentPlayer();
   renderPortrait(el('playerPortrait'),player,'md');
@@ -2273,6 +2408,17 @@ function renderArena(){
   el('enemyHpWrap').style.display = isBoss?'none':'';
   el('tugWrap').style.display = isBoss?'block':'none';
   if(isBoss){ el('tugBossName').textContent=playState.enemyDef.name; }
+
+  var consRow=el('activeConsumablesRow');
+  if(playState.usedConsumables && playState.usedConsumables.length){
+    consRow.style.display='flex';
+    consRow.innerHTML=playState.usedConsumables.map(function(id){
+      var item=CONSUMABLES.find(function(c){return c.id===id;});
+      return '<span class="badge-banner reward-banner" style="padding:4px 10px;font-size:.72rem;margin:0;">'+item.emoji+' '+escapeHtml(item.name)+'</span>';
+    }).join('');
+  } else {
+    consRow.style.display='none'; consRow.innerHTML='';
+  }
 }
 function renderTypedText(){
   var box=el('typeBox'); box.innerHTML=''; playState.spans=[];
@@ -2328,16 +2474,27 @@ function updateTugMeter(){
   var m=el('tugMarker'); if(!m) return;
   m.style.left=Math.max(0,Math.min(100,playState.tug))+'%';
 }
+/* Second Wind (revive consumable): the first time a boss fight would be
+   lost, refill the tug meter partway and burn the charge instead. */
+function tryRevive(){
+  if(!playState.reviveAvailable || playState.revivedUsed) return false;
+  playState.revivedUsed=true;
+  playState.tug=25;
+  updateTugMeter();
+  var pAvatar=el('playerPortrait');
+  if(pAvatar){ pAvatar.classList.add('evolve-pop'); setTimeout(function(){ pAvatar.classList.remove('evolve-pop'); },500); }
+  return true;
+}
 function startBossTick(){
   if(playState.tugInterval) clearInterval(playState.tugInterval);
   playState.tugInterval=setInterval(function(){
     if(!playState || playState.subKind!=='boss') return;
-    var tick=Math.max(1,Math.round(playState.diff.bossPush*playState.worldMult*playState.defenseMult*(1-playState.power.mistakeResist)));
+    var tick=Math.max(1,Math.round(playState.diff.bossPush*playState.worldMult*playState.defenseMult*playState.poisonMult*(1-playState.power.mistakeResist)));
     playState.tug=Math.max(0,playState.tug-tick);
     updateTugMeter();
     var enemyEl=el('enemyAvatarDisplay');
     if(enemyEl){ enemyEl.classList.add('shake'); setTimeout(function(){ enemyEl.classList.remove('shake'); },250); }
-    if(playState.tug<=0){ finishLevel('loss'); }
+    if(playState.tug<=0 && !tryRevive()){ finishLevel('loss'); }
   },playState.diff.bossInterval);
 }
 function ensureMoreBossText(){
@@ -2491,7 +2648,7 @@ function onKeydown(e){
         var penalty=Math.max(1,Math.round(playState.diff.mistakePenalty*playState.worldMult*playState.defenseMult*(1-playState.power.mistakeResist)));
         playState.tug=Math.max(0,playState.tug-penalty);
         spawnPlayerHit(penalty); updateArena();
-        if(playState.tug<=0){ finishLevel('loss'); return; }
+        if(playState.tug<=0 && !tryRevive()){ finishLevel('loss'); return; }
       } else {
         var hpCost=Math.max(1,Math.round(playState.worldMult*(1-playState.power.mistakeResist)));
         playState.playerHp=Math.max(0,playState.playerHp-hpCost);
