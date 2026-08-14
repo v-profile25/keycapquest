@@ -201,11 +201,23 @@
   .btn.big{padding:15px 28px;font-size:1.05rem;}
   .btn[disabled]{opacity:.45;cursor:not-allowed;}
 
-  .path{position:relative;margin-top:26px;padding:10px 0 30px;}
-  .path::before{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:0;border-left:4px dashed var(--border);transform:translateX(-50%);}
+  .path{margin-top:26px;padding:10px 0 30px;}
+  .map-region{position:relative;overflow:hidden;border-radius:var(--radius-lg);margin-bottom:8px;padding-bottom:4px;background:linear-gradient(180deg, color-mix(in srgb, var(--region-accent) 15%, var(--bg)) 0%, color-mix(in srgb, var(--region-accent) 4%, var(--bg)) 100%);}
+  .map-region.upcoming{filter:grayscale(.55);opacity:.72;}
+  .map-region-decor{position:absolute;font-size:3.2rem;opacity:.15;pointer-events:none;z-index:0;}
+  .map-region-decor.d0{top:8%;left:5%;}
+  .map-region-decor.d1{top:42%;right:3%;font-size:4rem;}
+  .map-region-decor.d2{bottom:6%;left:16%;font-size:2.4rem;}
+  .map-region-banner{position:relative;z-index:1;text-align:center;padding:14px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .mrb-emoji{font-size:2rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));}
+  .mrb-name{font-family:var(--font-display);font-weight:800;font-size:1rem;color:color-mix(in srgb, var(--region-accent) 60%, var(--ink));letter-spacing:.02em;}
+  .mrb-landscape{font-size:.72rem;color:var(--ink-soft);max-width:300px;}
+  .map-region-rows{position:relative;z-index:1;padding-top:4px;}
+  .map-region-rows::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:0;border-left:4px dashed color-mix(in srgb, var(--region-accent) 45%, var(--border));transform:translateX(-50%);z-index:0;}
   .node-row{display:flex;position:relative;z-index:1;margin-bottom:6px;}
   .node-row.l{justify-content:flex-start;} .node-row.r{justify-content:flex-end;}
   .node{width:104px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--key-shadow);padding:12px 8px 10px;text-align:center;cursor:pointer;margin:0 28px;}
+  .node:not(.locked){border-top:3px solid color-mix(in srgb, var(--region-accent) 55%, var(--border));}
   .node:active{transform:translateY(2px);box-shadow:var(--key-shadow-active);}
   .node .num{font-family:var(--font-mono);font-size:.68rem;color:var(--ink-soft);}
   .node .em{font-size:1.7rem;margin:2px 0;}
@@ -468,7 +480,7 @@
   <section class="screen" id="screen-map">
     <span class="eyebrow">World Map</span>
     <h1 class="hero-title">Climb the keyboard</h1>
-    <p class="hero-sub">Twelve worlds, three stages each: Practice, Skirmish, and a Boss Fight. Defeat bosses for gear and gold.</p>
+    <p class="hero-sub">A hundred worlds across nine lands, three stages each: Practice, Skirmish, and a Boss Fight. Defeat bosses for gold, gems, and glory.</p>
     <div class="path" id="mapPath"></div>
   </section>
 
@@ -1041,15 +1053,35 @@ var STORY_BANK_TIERS=[
 ];
 
 var CAMPAIGN_ARCS=[
-  {name:'Word Voyage',emoji:'🧭',type:'words',bankTier:0,blurb:'Longer words now that you know every key -- keep your eyes up.'},
-  {name:'Word Odyssey',emoji:'🗺️',type:'words',bankTier:1,blurb:'The hardest words in the game. Long, unfamiliar, and worth it.'},
-  {name:'Sentence Sprint',emoji:'🏁',type:'sentences',bankTier:0,blurb:'Full sentences, back to back -- keep your rhythm steady.'},
-  {name:'Comma Canyon',emoji:'🏜️',type:'sentences',bankTier:1,blurb:'Compound sentences with commas and semicolons.'},
-  {name:'Quote Quarry',emoji:'💬',type:'sentences',bankTier:2,blurb:'Dialogue, colons, and contractions -- punctuation gets real.'},
-  {name:'Story Springs',emoji:'📗',type:'story',bankTier:0,blurb:'Short stories now, a few sentences at a time.'},
-  {name:'Paragraph Peaks',emoji:'🏔️',type:'story',bankTier:1,blurb:'Longer stories that test both speed and stamina.'},
-  {name:'Keyboard Legends',emoji:'👑',type:'story',bankTier:2,blurb:'The hardest stories in the game. This is the endgame.'}
+  {name:'Word Voyage',emoji:'🧭',type:'words',bankTier:0,blurb:'Longer words now that you know every key -- keep your eyes up.',
+    landscape:'Set sail across rolling word-waves.',accent:'#3f8fd6',terrain:['🌊','⛵','🐚']},
+  {name:'Word Odyssey',emoji:'🗺️',type:'words',bankTier:1,blurb:'The hardest words in the game. Long, unfamiliar, and worth it.',
+    landscape:'A long trek across golden dunes.',accent:'#d6a63f',terrain:['🏜️','🐫','🌵']},
+  {name:'Sentence Sprint',emoji:'🏁',type:'sentences',bankTier:0,blurb:'Full sentences, back to back -- keep your rhythm steady.',
+    landscape:'Racing down a straightaway of full sentences.',accent:'#e0483f',terrain:['🏁','🚦','💨']},
+  {name:'Comma Canyon',emoji:'🏜️',type:'sentences',bankTier:1,blurb:'Compound sentences with commas and semicolons.',
+    landscape:'Winding red-rock trails, a pause at every comma.',accent:'#c1602f',terrain:['🪨','🦅','🌄']},
+  {name:'Quote Quarry',emoji:'💬',type:'sentences',bankTier:2,blurb:'Dialogue, colons, and contractions -- punctuation gets real.',
+    landscape:'Chiseling through dialogue, one quote at a time.',accent:'#6b6fc4',terrain:['⛏️','🗿','💭']},
+  {name:'Story Springs',emoji:'📗',type:'story',bankTier:0,blurb:'Short stories now, a few sentences at a time.',
+    landscape:'Cool forest springs -- the first real stories.',accent:'#1f9e78',terrain:['🌲','💧','🍃']},
+  {name:'Paragraph Peaks',emoji:'🏔️',type:'story',bankTier:1,blurb:'Longer stories that test both speed and stamina.',
+    landscape:'Thin air, long paragraphs, breathtaking views.',accent:'#5aa9c9',terrain:['🏔️','❄️','🌨️']},
+  {name:'Keyboard Legends',emoji:'👑',type:'story',bankTier:2,blurb:'The hardest stories in the game. This is the endgame.',
+    landscape:'The legendary summit -- only the fastest reach here.',accent:'#c99a2e',terrain:['👑','⭐','🏰']}
 ];
+/* The map groups all 100 worlds into 9 travelled "lands": this starter
+   valley (worlds 1-12, the hand-built arc) plus the 8 CAMPAIGN_ARCS above
+   (worlds 13-100). Each has an accent color + terrain emoji so scrolling
+   the map feels like moving through different landscapes, not one long
+   uniform list. See renderMap(). */
+var INTRO_REGION={name:'Home Row Valley',emoji:'🏡',
+  landscape:'Where every journey begins -- green hills, gentle winds.',accent:'#5fb87a',terrain:['🌳','🌱','🦋']};
+function regionForWorld(id){
+  if(id<13) return INTRO_REGION;
+  var arcIndex=Math.min(Math.floor((id-13)/11),CAMPAIGN_ARCS.length-1);
+  return CAMPAIGN_ARCS[arcIndex];
+}
 var ARC_ADJ=['Storm','Crimson','Shadow','Golden','Frost','Ember','Iron','Mystic','Silver','Thorn','Void','Radiant'];
 var ARC_CREATURE=[{n:'Griffin',e:'🦅'},{n:'Wyrm',e:'🐍'},{n:'Golem',e:'🗿'},{n:'Phoenix',e:'🔥'},{n:'Kraken',e:'🐙'},{n:'Sphinx',e:'🦁'},{n:'Yeti',e:'❄️'},{n:'Basilisk',e:'🐲'},{n:'Chimera',e:'🦄'},{n:'Wraith',e:'👻'},{n:'Colossus',e:'🗿'},{n:'Direwolf',e:'🐺'}];
 function proceduralEnemy(seed){
@@ -1970,9 +2002,24 @@ function goToTutorial(){
 function renderMap(){
   var p=getCurrentPlayer();
   var path=el('mapPath'); path.innerHTML='';
+  var currentRegion=null, rowsWrap=null;
   LEVELS.forEach(function(level,i){
-    var row=document.createElement('div'); row.className='node-row '+(i%2===0?'l':'r');
     var unlocked=isWorldUnlocked(p,level.id);
+    var region=regionForWorld(level.id);
+    if(region!==currentRegion){
+      currentRegion=region;
+      var regionWrap=document.createElement('div');
+      regionWrap.className='map-region'+(unlocked?'':' upcoming');
+      regionWrap.style.setProperty('--region-accent',region.accent);
+      regionWrap.innerHTML = region.terrain.map(function(e,ti){return '<span class="map-region-decor d'+ti+'">'+e+'</span>';}).join('')+
+        '<div class="map-region-banner"><span class="mrb-emoji">'+region.emoji+'</span>'+
+        '<span class="mrb-name">'+escapeHtml(region.name)+'</span>'+
+        '<span class="mrb-landscape">'+escapeHtml(region.landscape)+'</span></div>';
+      rowsWrap=document.createElement('div'); rowsWrap.className='map-region-rows';
+      regionWrap.appendChild(rowsWrap);
+      path.appendChild(regionWrap);
+    }
+    var row=document.createElement('div'); row.className='node-row '+(i%2===0?'l':'r');
     var bossProg=getSub(p,level.id,'boss');
     var stars=bossProg?bossProg.stars:0;
     var node=document.createElement('div'); node.className='card node'+(unlocked?'':' locked'); node.tabIndex=0;
@@ -1984,7 +2031,7 @@ function renderMap(){
         '<div class="lt">'+escapeHtml(level.title)+'</div><div class="stars">'+starStr+'</div>';
       node.addEventListener('click',function(){ goToWorldDetail(level.id); });
     }
-    row.appendChild(node); path.appendChild(row);
+    row.appendChild(node); rowsWrap.appendChild(row);
   });
 }
 
