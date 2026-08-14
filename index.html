@@ -29,6 +29,45 @@
     --font-display: "Segoe UI", "Trebuchet MS", "Verdana", system-ui, sans-serif;
     --font-body: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
     --font-mono: "Cascadia Mono", "Consolas", "SFMono-Regular", Menlo, Monaco, "Liberation Mono", monospace;
+
+    /* The level screen (arena + keyboard + everything between) has to fit
+       one viewport with no scrolling -- scrolling away from the keyboard
+       mid-word is a hard failure, not just a cosmetic issue. These default
+       to today's fixed sizes (unchanged on any normal desktop window) and
+       only get scaled down by the max-height media query below, for short
+       viewports -- tablets in landscape especially, where browser chrome
+       eats a big chunk of an already-short screen. */
+    --key-h: 40px;
+    --kb-gap: 6px;
+    --hand-w: 98px;
+    --hand-gap: 20px;
+    --portrait-md-sz: 80px;
+    --arena-pad-v: 18px;
+    --sect-gap: 16px;
+    --typebox-pad-v: 22px;
+    --app-pad-top: 20px;
+    --app-pad-bottom: 60px;
+  }
+  /* Below this height, scale continuously down to the floors reached at
+     ~660px (a landscape iPad in Safari, browser chrome included) -- picked
+     by measuring the level screen's actual content height against real
+     tablet viewports until the keyboard stopped needing a scroll. */
+  @media (max-height: 850px){
+    :root{
+      --key-h: clamp(24px, 3.2vh, 40px);
+      --kb-gap: clamp(2px, 0.5vh, 6px);
+      --hand-w: clamp(40px, 6vh, 98px);
+      --hand-gap: clamp(6px, 1.3vh, 20px);
+      --portrait-md-sz: clamp(46px, 6vh, 80px);
+      --arena-pad-v: clamp(5px, 1vh, 18px);
+      --sect-gap: clamp(4px, 1vh, 16px);
+      --typebox-pad-v: clamp(7px, 1.2vh, 22px);
+      --app-pad-top: clamp(6px, 1.2vh, 20px);
+      --app-pad-bottom: clamp(12px, 2.5vh, 60px);
+      --portrait-md-font: clamp(1.3rem, 3.2vh, 2.4rem);
+      --favatar-font: clamp(1.5rem, 3.6vh, 2.9rem);
+      --level-h2-font: clamp(1rem, 2.6vh, 1.25rem);
+    }
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -53,11 +92,11 @@
     *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
   }
 
-  .app{max-width:920px;margin:0 auto;padding:20px 16px 60px;}
+  .app{max-width:920px;margin:0 auto;padding:var(--app-pad-top) 16px var(--app-pad-bottom);}
   .screen{display:none;}
   .screen.active{display:block;}
 
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:var(--sect-gap);flex-wrap:wrap;}
   .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:1.3rem;letter-spacing:.01em;}
   .brand .mark{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);box-shadow:var(--key-shadow);font-size:1.2rem;}
   .topbar-right{display:flex;align-items:center;gap:8px;}
@@ -89,8 +128,8 @@
   .portrait-pf .portrait-art{border-width:3px;}
   .portrait-pf .portrait-hat{font-size:1.3rem;top:-24%;}
   .portrait-pf .portrait-companion{display:none;}
-  .portrait-md{width:80px;height:80px;}
-  .portrait-md .portrait-avatar{font-size:2.4rem;border-width:3px;}
+  .portrait-md{width:var(--portrait-md-sz);height:var(--portrait-md-sz);}
+  .portrait-md .portrait-avatar{font-size:var(--portrait-md-font,2.4rem);border-width:3px;}
   .portrait-md .portrait-art{border-width:3px;}
   .portrait-md .portrait-hat{font-size:1.7rem;top:-20%;}
   .portrait-md .portrait-companion{width:26px;height:26px;font-size:1rem;bottom:-6%;right:-8%;}
@@ -195,23 +234,23 @@
   .sheet .meta{display:flex;justify-content:center;gap:22px;margin:16px 0;font-family:var(--font-mono);font-size:.85rem;color:var(--ink-soft);}
   .sheet .meta b{color:var(--ink);font-size:1rem;}
 
-  .level-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-  .level-header h2{font-size:1.25rem;}
-  .hud{display:flex;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:16px;box-shadow:var(--key-shadow);}
+  .level-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:var(--sect-gap);}
+  .level-header h2{font-size:var(--level-h2-font,1.25rem);}
+  .hud{display:flex;gap:10px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:calc(var(--arena-pad-v) * .65) 16px;margin-bottom:var(--sect-gap);box-shadow:var(--key-shadow);}
   .hud .stat{flex:1;min-width:70px;text-align:center;}
   .hud .stat .v{font-family:var(--font-mono);font-weight:700;font-size:1.15rem;font-variant-numeric:tabular-nums;}
   .hud .stat .k{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);}
-  .progressbar{height:8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;}
+  .progressbar{height:8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-bottom:var(--sect-gap);}
   .progressbar .fill{height:100%;background:var(--f-index);width:0%;transition:width .15s ease;}
 
-  .arena{position:relative;display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 14px;margin-bottom:16px;box-shadow:var(--key-shadow);overflow:hidden;}
+  .arena{position:relative;display:flex;flex-direction:column;gap:var(--sect-gap);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--arena-pad-v) 14px;margin-bottom:var(--sect-gap);box-shadow:var(--key-shadow);overflow:hidden;}
   .arena-fighters{display:flex;align-items:center;justify-content:space-between;gap:14px;}
-  .fighter{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0;}
+  .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;}
   .tug-wrap{padding:0 4px;}
   .tug-track{position:relative;height:14px;border-radius:99px;border:1px solid var(--border);background:linear-gradient(90deg, var(--bad) 0%, var(--surface-2) 35%, var(--surface-2) 65%, var(--f-index) 100%);}
   .tug-marker{position:absolute;top:50%;left:50%;width:18px;height:18px;transform:translate(-50%,-50%);border-radius:50%;background:var(--accent);border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent), 0 2px 4px rgba(0,0,0,.3);transition:left .18s ease;}
   .tug-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.65rem;color:var(--ink-soft);margin-top:5px;text-transform:uppercase;letter-spacing:.06em;}
-  .fighter .favatar{font-size:2.9rem;transition:transform .12s ease;}
+  .fighter .favatar{font-size:var(--favatar-font,2.9rem);transition:transform .12s ease;}
   .fighter .weapon{font-size:1.2rem;margin-top:-4px;}
   .fighter .ename{font-family:var(--font-display);font-weight:800;font-size:.8rem;text-align:center;}
   .hp-row{font-size:.95rem;letter-spacing:1px;white-space:nowrap;}
@@ -226,7 +265,7 @@
   .shake{animation:shakeAnim .3s ease;}
   @keyframes shakeAnim{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 
-  .typebox{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px 20px;font-family:var(--font-mono);font-size:clamp(1.15rem,2.6vw,1.6rem);line-height:1.7;letter-spacing:.01em;box-shadow:var(--key-shadow);margin-bottom:8px;word-wrap:break-word;}
+  .typebox{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--typebox-pad-v) 20px;font-family:var(--font-mono);font-size:clamp(1.15rem,2.6vw,1.6rem);line-height:1.5;letter-spacing:.01em;box-shadow:var(--key-shadow);margin-bottom:8px;word-wrap:break-word;}
   .ch{color:var(--ink-soft);}
   .ch.correct{color:var(--good);}
   .ch.current{position:relative;color:var(--ink);}
@@ -235,13 +274,13 @@
   .ch.space{padding:0 2px;}
   @keyframes blink{50%{opacity:0;}}
 
-  .finger-hint{text-align:center;font-family:var(--font-mono);font-size:.9rem;font-weight:700;margin:6px 0 14px;color:var(--hint-color,var(--ink-soft));transition:font-size .12s ease;}
+  .finger-hint{text-align:center;font-family:var(--font-mono);font-size:.9rem;font-weight:700;margin:calc(var(--sect-gap) * .4) 0 var(--sect-gap);color:var(--hint-color,var(--ink-soft));transition:font-size .12s ease;}
   .finger-hint.insist{font-size:1.15rem;color:var(--bad)!important;animation:hintShake .4s ease-in-out;}
   @keyframes hintShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
 
   /* ---------- hand diagram ---------- */
-  .hand-diagram{display:flex;justify-content:center;align-items:flex-end;gap:20px;margin:10px 0 4px;}
-  .hand-diagram svg{width:98px;height:auto;overflow:visible;display:block;}
+  .hand-diagram{display:flex;justify-content:center;align-items:flex-end;gap:var(--hand-gap);margin:calc(var(--hand-gap) * .5) 0 4px;}
+  .hand-diagram svg{width:var(--hand-w);height:auto;overflow:visible;display:block;}
   .hand-diagram.lg{gap:34px;margin:16px 0 8px;}
   .hand-diagram.lg svg{width:150px;}
   .hand [data-f]{transform-box:fill-box;transform-origin:center;transition:opacity .15s ease;}
@@ -257,8 +296,8 @@
   .hand-caption{text-align:center;font-family:var(--font-display);font-weight:800;font-size:.85rem;color:var(--ink-soft);margin:-4px 0 12px;}
 
   .keyboard{max-width:640px;margin:0 auto;overflow-x:auto;padding-bottom:4px;}
-  .kb-row{display:flex;justify-content:center;gap:6px;margin-bottom:6px;}
-  .key{min-width:34px;height:40px;flex:1;max-width:44px;background:var(--surface-2);border:1px solid var(--border);border-bottom:4px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:.78rem;color:var(--ink-soft);box-shadow:var(--key-shadow);transition:transform .08s ease, box-shadow .08s ease;position:relative;user-select:none;}
+  .kb-row{display:flex;justify-content:center;gap:var(--kb-gap);margin-bottom:var(--kb-gap);}
+  .key{min-width:34px;height:var(--key-h);flex:1;max-width:44px;background:var(--surface-2);border:1px solid var(--border);border-bottom:4px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:.78rem;color:var(--ink-soft);box-shadow:var(--key-shadow);transition:transform .08s ease, box-shadow .08s ease;position:relative;user-select:none;}
   .key.wide{flex:2.2;max-width:110px;font-size:.65rem;}
   .key.space{flex:8;max-width:none;}
   .key.nub::after{content:"";position:absolute;bottom:9px;width:12px;height:2.5px;background:var(--ink-soft);border-radius:2px;}
@@ -276,7 +315,7 @@
   .key.pressed-wrong{background:var(--bad);color:#fff;border-color:var(--bad);}
   .key.held{background:var(--ink-soft);color:var(--surface);}
 
-  .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:16px 0 4px;font-size:.72rem;color:var(--ink-soft);}
+  .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:var(--sect-gap) 0 4px;font-size:.72rem;color:var(--ink-soft);}
   .legend .lg{display:flex;align-items:center;gap:5px;}
   .legend .dot{width:10px;height:10px;border-radius:50%;}
 
@@ -316,6 +355,12 @@
   .char-hero-stage{position:relative;max-width:420px;margin:26px auto 4px;padding-top:20px;}
   .char-hero-stage .portrait-hero{width:100%;height:340px;margin:0 auto;}
   .char-card-plate{position:relative;z-index:4;width:fit-content;margin:8px auto 0;padding:7px 18px 9px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;text-align:center;color:#1a1d22;background:var(--border);box-shadow:var(--key-shadow);}
+  .companion-showcase{display:flex;align-items:center;gap:16px;max-width:420px;margin:16px auto 0;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--key-shadow);}
+  .companion-showcase-art{width:96px;height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:4.4rem;line-height:1;filter:drop-shadow(0 5px 8px rgba(0,0,0,.28));}
+  .companion-showcase-art img{width:100%;height:100%;object-fit:contain;}
+  .companion-showcase-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:2px;}
+  .companion-showcase-name{font-family:var(--font-display);font-weight:800;font-size:1.05rem;}
+  .companion-showcase-bonus{font-family:var(--font-mono);font-size:.72rem;color:var(--good);margin-top:3px;}
   .char-info{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:10px;}
   .char-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
   .char-stats div{display:flex;flex-direction:column;font-family:var(--font-mono);}
@@ -331,6 +376,20 @@
   .finger-acc-chip .facc{font-family:var(--font-mono);font-weight:700;font-size:.85rem;}
   .finger-acc-chip.weakest{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(in srgb, var(--bad) 20%, transparent);}
   .char-weapon{font-size:.9rem;color:var(--ink-soft);}
+
+  /* ---------- progress screen: reward/stat tiles + trend charts ---------- */
+  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px;}
+  .stat-tile{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 10px;text-align:center;box-shadow:var(--key-shadow);}
+  .stat-tile .sti{font-size:1.3rem;}
+  .stat-tile .stv{font-family:var(--font-mono);font-weight:700;font-size:1.05rem;margin-top:3px;}
+  .stat-tile .stl{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-top:2px;}
+  .stat-tile .stn{font-size:.66rem;color:var(--ink-soft);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);}
+  .stat-tile.complete{border-color:var(--good);}
+  .stat-tile.complete .stv{color:var(--good);}
+  .chart-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
+  .chart-card{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px 8px;box-shadow:var(--key-shadow);}
+  .chart-title{font-family:var(--font-display);font-weight:800;font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
+  .chart-daterange{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.62rem;color:var(--ink-soft);margin-top:2px;}
   .char-weapon b{color:var(--ink);}
   .growth-panel{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0 4px;box-shadow:var(--key-shadow);}
   .growth-head{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-display);font-weight:800;font-size:.95rem;margin-bottom:8px;}
@@ -371,6 +430,7 @@
     <div class="topbar-right">
       <button class="iconbtn" id="btnTutorial" title="How to Type">✋</button>
       <button class="iconbtn" id="btnCharacter" title="Character &amp; Shop">🧢</button>
+      <button class="iconbtn" id="btnProgress" title="Progress">📈</button>
       <button class="iconbtn" id="btnDifficulty" title="Difficulty">⚔️</button>
       <button class="iconbtn" id="btnGear" title="Armory">🎒</button>
       <button class="iconbtn" id="btnChallenge" title="Challenge a Friend">🆚</button>
@@ -477,6 +537,14 @@
       <div class="portrait portrait-hero" id="charPortrait"></div>
       <div class="char-card-plate" id="charRank">Rookie Typist</div>
     </div>
+    <div class="companion-showcase" id="companionShowcase" style="display:none;">
+      <div class="companion-showcase-art" id="companionShowcaseArt"></div>
+      <div class="companion-showcase-info">
+        <div class="companion-showcase-label">🐾 Your Companion</div>
+        <div class="companion-showcase-name" id="companionShowcaseName">Chick</div>
+        <div class="companion-showcase-bonus" id="companionShowcaseBonus">+1 HP in battle</div>
+      </div>
+    </div>
     <div class="char-info">
       <div class="char-stats">
         <div><b id="charWorlds">0/12</b><span>Worlds Cleared</span></div>
@@ -505,16 +573,6 @@
     <p class="hero-sub">Recruit more characters and swap your active one anytime — for free. Each has its own element, growth and evolution, so bringing the right one to a boss matters as much as your gear.</p>
     <div class="shop-grid" id="rosterGrid"></div>
 
-    <h3 class="shop-heading">🖐️ Finger Accuracy</h3>
-    <p class="hero-sub" id="fingerReportBlurb">Every keystroke's intended finger gets tallied — this can't see your hands, but a finger that keeps missing its own keys is a real tell. Play a few levels to build up data.</p>
-    <div class="finger-report" id="fingerReport" style="display:none;">
-      <div class="hand-diagram lg" id="fingerAccuracyHands"></div>
-      <div class="finger-acc-grid" id="fingerAccGrid"></div>
-      <div class="btnrow" style="justify-content:center;margin-top:10px;">
-        <button class="btn ghost" id="btnPracticeWeak" style="display:none;font-size:.8rem;"></button>
-      </div>
-    </div>
-
     <h3 class="shop-heading">🍖 Feed &amp; Grow</h3>
     <p class="hero-sub">Feed your active character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
     <div class="shop-grid" id="shopFood"></div>
@@ -533,6 +591,64 @@
     <div class="shop-grid" id="shopAuras"></div>
     <h3 class="shop-heading">🏷️ Titles</h3>
     <div class="shop-grid" id="shopTitles"></div>
+  </section>
+
+  <!-- PROGRESS SCREEN -->
+  <section class="screen" id="screen-progress">
+    <div class="level-header">
+      <div><span class="eyebrow">Progress</span><h2 id="progName">Name</h2></div>
+      <button class="btn ghost" id="btnProgressBack">← Map</button>
+    </div>
+
+    <div class="char-hero-stage" id="progHeroStage">
+      <div class="portrait portrait-hero" id="progPortrait"></div>
+      <div class="char-card-plate" id="progRank">Rookie Typist</div>
+    </div>
+    <p class="hero-sub" id="progTierLine" style="text-align:center;"></p>
+
+    <h3 class="shop-heading">🎁 Rewards Earned</h3>
+    <div class="tile-grid" id="rewardsGrid"></div>
+
+    <h3 class="shop-heading">📈 Progress by World</h3>
+    <p class="hero-sub" id="progChartBlurb">Clear a few stages to start seeing your trend lines here.</p>
+    <div class="chart-row" id="progChartRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">Best WPM per World</div>
+        <div id="chartWpm"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Best Accuracy per World</div>
+        <div id="chartAcc"></div>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">🗓️ Since You Started Playing</h3>
+    <p class="hero-sub" id="dailyChartBlurb">Play on a couple different days and this'll start tracking whether you're getting faster and more accurate over time.</p>
+    <div class="chart-row" id="dailyChartRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">Best WPM per Day Played</div>
+        <div id="chartDailyWpm"></div>
+        <div class="chart-daterange" id="dailyWpmRange"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Best Accuracy per Day Played</div>
+        <div id="chartDailyAcc"></div>
+        <div class="chart-daterange" id="dailyAccRange"></div>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">🖐️ Finger Accuracy</h3>
+    <p class="hero-sub" id="fingerReportBlurb">Every keystroke's intended finger gets tallied — this can't see your hands, but a finger that keeps missing its own keys is a real tell. Play a few levels to build up data.</p>
+    <div class="finger-report" id="fingerReport" style="display:none;">
+      <div class="hand-diagram lg" id="fingerAccuracyHands"></div>
+      <div class="finger-acc-grid" id="fingerAccGrid"></div>
+      <div class="btnrow" style="justify-content:center;margin-top:10px;">
+        <button class="btn ghost" id="btnPracticeWeak" style="display:none;font-size:.8rem;"></button>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">📊 Stats</h3>
+    <div class="tile-grid" id="statsHighlightGrid"></div>
   </section>
 
   <!-- LEVEL SCREEN -->
@@ -1046,6 +1162,12 @@ var COMPANIONS=[
   {id:'ghost',name:'Ghost',emoji:'👻',price:140,unlockWorld:60,hpBonus:3},
   {id:'dragon',name:'Dragon',emoji:'🐉',price:220,unlockWorld:90,hpBonus:4}
 ];
+/* Painted companion art -- one image per companion (they don't evolve, so
+   no tiers), at assets/companions/<id>.webp. Same convention as
+   CHARACTER_ART: missing entries just fall back to a large emoji, so
+   companions can be illustrated one at a time. */
+var COMPANION_ART={};
+function companionArtFor(id){ return COMPANION_ART[id]||null; }
 var AURAS=[
   {id:'sunny',name:'Sunny',a:'#ffe066',b:'#ffd43b',price:20},
   {id:'ocean',name:'Ocean',a:'#66d9ef',b:'#4dabf7',price:20,unlockWorld:3},
@@ -1181,6 +1303,31 @@ var DATA=loadData();
 
 function getCurrentPlayer(){ return DATA.players.find(function(p){return p.id===DATA.lastPlayerId;}); }
 function totalStars(p){ var t=0; allSubEntries(p).forEach(function(e){t+=e.stars||0;}); return t; }
+/* Calendar-time progress, separate from per-world progress -- one entry
+   per day actually played (not per attempt, so this can't grow
+   unbounded), tracking that day's best WPM/accuracy. World id already
+   doubles as a rough timeline for campaign progress, but doesn't answer
+   "am I getting faster over the weeks I've been playing" the way a
+   real date-keyed log does. Only starts recording from whenever this
+   shipped -- there's no way to backfill history for existing saves. */
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function recordDailyStat(player,wpm,acc){
+  player.dailyStats=player.dailyStats||{};
+  var key=todayKey();
+  var day=player.dailyStats[key]||{attempts:0,bestWpm:0,bestAcc:0};
+  day.attempts++;
+  day.bestWpm=Math.max(day.bestWpm,wpm);
+  day.bestAcc=Math.max(day.bestAcc,acc);
+  player.dailyStats[key]=day;
+}
+function dailyChartData(p,field){
+  var days=Object.keys(p.dailyStats||{}).sort();
+  return days.map(function(d,i){ return {x:i, y:p.dailyStats[d][field]||0, label:d}; });
+}
+function formatDayLabel(isoDate){
+  var d=new Date(isoDate+'T00:00:00');
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function equippedWeapon(player){
   var owned=player.gearWorlds||[];
@@ -1225,45 +1372,58 @@ var GROWTH_TIERS=[
    armored, mighty but heroic, never a monster). Freely re-choosable. */
 var EVOLUTION_PATHS=[
   {id:'cute',name:'Radiant',emoji:'🌟',tagline:'Magical & sparkling',desc:'A glowing path of starlight, aurora and crystal. Still incredibly powerful -- just friendly-powerful.'},
-  {id:'mythic',name:'Valiant',emoji:'🛡️',tagline:'Noble & mighty',desc:'A bold path of armored guardians and legendary champions. Strong and fierce, always heroic.'}
+  {id:'mythic',name:'Valiant',emoji:'🛡️',tagline:'Noble & mighty',desc:'A bold path of armored guardians and legendary champions. Strong and fierce, always heroic.'},
+  {id:'ferocious',name:'Ferocious',emoji:'🔥',tagline:'Fierce & untamed',desc:'A wild path of primal strength and blazing intensity. Bold and battle-ready, straight off the front line.'}
 ];
 var AVATAR_THEMES={
   '🦊':{base:['Fox Kit','Fox Pup','Sly Fox','Swift Fox','Ember Fox'],
     cute:['Moonlit Fox','Starlight Vixen','Aurora Kitsune','Celestial Fox Spirit','Astral Kitsune Empress'],
-    mythic:['Blaze Fox','Flame-Tail Fox','Nine-Tail Guardian','Dawn Kitsune','Dragonfox Sovereign']},
+    mythic:['Blaze Fox','Flame-Tail Fox','Nine-Tail Guardian','Dawn Kitsune','Dragonfox Sovereign'],
+    ferocious:['Feral Fox','Blazefang Fox','Inferno Fox Reaver','Warbound Foxblade','Infernal Fox Warlord']},
   '🐯':{base:['Tiger Cub','Young Tiger','Bold Tiger','Swift Tiger','Bright Tiger'],
     cute:['Aurora Tiger','Starlit Tiger','Crystal Tiger Spirit','Celestial White Tiger','Astral Tiger Empress'],
-    mythic:['Storm Tiger','Thunder Tiger','Sabertooth Guardian','Dragon-Striped Tiger','Tiger Sovereign']},
+    mythic:['Storm Tiger','Thunder Tiger','Sabertooth Guardian','Dragon-Striped Tiger','Tiger Sovereign'],
+    ferocious:['Feral Tiger','Bloodstripe Tiger','Warfang Tiger','Berserker Tiger','Inferno Tiger Warlord']},
   '🐼':{base:['Panda Pup','Panda Cub','Roly-Poly Panda','Bamboo Scout','Jade Panda'],
     cute:['Blossom Panda','Starlight Panda','Crystal Panda Spirit','Celestial Panda','Astral Panda Sage'],
-    mythic:['Storm Panda','Bamboo Guardian','Panda Warrior','Panda Dragonlord','Panda Titan']},
+    mythic:['Storm Panda','Bamboo Guardian','Panda Warrior','Panda Dragonlord','Panda Titan'],
+    ferocious:['Feral Panda','Ironclaw Panda','Warbound Panda','Berserker Panda','Panda Warlord']},
   '🦁':{base:['Lion Cub','Young Lion','Playful Lion','Proud Lion','Golden Lion'],
     cute:['Sunbeam Lion','Starlight Lion','Crystal-Maned Lion','Celestial Lion Spirit','Astral Lion Empress'],
-    mythic:['Sun Lion','Storm-Maned Lion','Lion Guardian','Dragon-Maned Lion','Lion Sovereign']},
+    mythic:['Sun Lion','Storm-Maned Lion','Lion Guardian','Dragon-Maned Lion','Lion Sovereign'],
+    ferocious:['Feral Lion','Bloodmane Lion','Warfang Lion','Berserker Lion','Inferno Lion Warlord']},
   '🐸':{base:['Tadpole','Froglet','Leaping Frog','Pond Hopper','Bright Frog'],
     cute:['Dew Frog','Starlight Frog','Crystal Lily Frog','Celestial Frog Spirit','Astral Frog Sprite'],
-    mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus']},
+    mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus'],
+    ferocious:['Feral Frog','Venomstrike Frog','Warbound Toad','Berserker Toad','Toad Warlord']},
   '🐵':{base:['Baby Monkey','Young Monkey','Nimble Monkey','Playful Monkey','Jungle Monkey'],
     cute:['Starlight Monkey','Moonvine Monkey','Crystal Monkey Spirit','Celestial Monkey','Astral Monkey Sage'],
-    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign']},
+    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign'],
+    ferocious:['Feral Monkey','Ironfist Monkey','Warbound Monkey','Berserker Monkey','Monkey Warlord']},
   '🦄':{base:['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn'],
     cute:['Comet Unicorn','Aurora Unicorn','Crystal Unicorn Spirit','Celestial Unicorn','Astral Unicorn Empress'],
-    mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign']},
+    mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign'],
+    ferocious:['Feral Unicorn','Bloodhorn Unicorn','Warbound Unicorn','Berserker Unicorn','Unicorn Warlord']},
   '🐨':{base:['Koala Joey','Young Koala','Sleepy Koala','Eucalyptus Koala','Cloud Koala'],
     cute:['Starlight Koala','Dreamy Koala','Crystal Koala Spirit','Celestial Koala','Astral Koala Sage'],
-    mythic:['Storm Koala','Koala Guardian','Koala Champion','Koala Dragonlord','Koala Titan']},
+    mythic:['Storm Koala','Koala Guardian','Koala Champion','Koala Dragonlord','Koala Titan'],
+    ferocious:['Feral Koala','Ironclaw Koala','Warbound Koala','Berserker Koala','Koala Warlord']},
   '🐶':{base:['Puppy','Young Pup','Loyal Hound','Brave Dog','Storm Hound'],
     cute:['Starlight Hound','Aurora Pup','Crystal-Coat Hound','Celestial Guardian Dog','Astral Hound Spirit'],
-    mythic:['Thunder Wolfhound','Alpha Guardian','Storm-Crowned Wolfhound','Dragon-Fang Wolfhound','Mecha War-Dog Sovereign']},
+    mythic:['Thunder Wolfhound','Alpha Guardian','Storm-Crowned Wolfhound','Dragon-Fang Wolfhound','Mecha War-Dog Sovereign'],
+    ferocious:['Feral Hound','Bloodfang Wolfhound','Warbound Wolfhound','Berserker Warhound','Infernal War-Dog Warlord']},
   '🐱':{base:['Kitten','Young Cat','Curious Cat','Playful Cat','Bright Cat'],
     cute:['Starlight Cat','Moonlit Cat','Crystal Cat Spirit','Celestial Cat','Astral Cat Empress'],
-    mythic:['Storm Cat','Cat Guardian','Cat Champion','Cat Dragonlord','Cat Sovereign']},
+    mythic:['Storm Cat','Cat Guardian','Cat Champion','Cat Dragonlord','Cat Sovereign'],
+    ferocious:['Feral Cat','Bloodclaw Cat','Warbound Cat','Berserker Cat','Cat Warlord']},
   '🐰':{base:['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Bright Rabbit'],
     cute:['Moon Rabbit','Starlight Hare','Crystal Rabbit Spirit','Celestial Hare','Astral Rabbit Empress'],
-    mythic:['Storm Rabbit','Thunder Hare','Rabbit Guardian','Rabbit Dragonlord','Rabbit Sovereign']},
+    mythic:['Storm Rabbit','Thunder Hare','Rabbit Guardian','Rabbit Dragonlord','Rabbit Sovereign'],
+    ferocious:['Feral Hare','Bloodfang Hare','Warbound Hare','Berserker Hare','Hare Warlord']},
   '🐻':{base:['Bear Cub','Young Bear','Curious Bear','Playful Bear','Bright Bear'],
     cute:['Starlight Bear','Aurora Bear','Crystal Bear Spirit','Celestial Bear','Astral Bear Sage'],
-    mythic:['Storm Bear','Bear Guardian','Bear Champion','Bear Dragonlord','Bear Sovereign']}
+    mythic:['Storm Bear','Bear Guardian','Bear Champion','Bear Dragonlord','Bear Sovereign'],
+    ferocious:['Feral Bear','Ironclaw Bear','Warbound Bear','Berserker Bear','Bear Warlord']}
 };
 var AVATAR_SLUGS={
   '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
@@ -1365,16 +1525,37 @@ function switchActiveCharacter(id){
    the shared tiers 1-5; "cute" and "mythic" cover tiers 6-10 once a path
    is chosen. A missing entry falls back to the emoji + SVG effect-layer
    portrait automatically -- nothing has to ship at once. */
+function pathArt(slug,path,tiers){
+  tiers=tiers||[6,7,8,9,10];
+  return tiers.map(function(t){ return 'assets/characters/'+slug+'/tier-'+t+'-'+path+'.webp'; });
+}
 var CHARACTER_ART={
   dog:{
     base:[
       'assets/characters/dog/tier-1.webp','assets/characters/dog/tier-2.webp','assets/characters/dog/tier-3.webp',
       'assets/characters/dog/tier-4.webp','assets/characters/dog/tier-5.webp'
     ],
-    mythic:[
-      'assets/characters/dog/tier-6.webp','assets/characters/dog/tier-7.webp','assets/characters/dog/tier-8.webp',
-      'assets/characters/dog/tier-9.webp','assets/characters/dog/tier-10.webp'
-    ]
+    cute: pathArt('dog','radiant'),
+    mythic: pathArt('dog','valiant'),
+    ferocious: pathArt('dog','ferocious')
+  },
+  fox:{
+    base:[
+      'assets/characters/fox/tier-1.webp','assets/characters/fox/tier-2.webp','assets/characters/fox/tier-3.webp',
+      'assets/characters/fox/tier-4.webp','assets/characters/fox/tier-5.webp'
+    ],
+    cute: pathArt('fox','radiant'),
+    mythic: pathArt('fox','valiant'),
+    ferocious: pathArt('fox','ferocious')
+  },
+  cat:{
+    base:[
+      'assets/characters/cat/tier-1.webp','assets/characters/cat/tier-2.webp','assets/characters/cat/tier-3.webp',
+      'assets/characters/cat/tier-4.webp','assets/characters/cat/tier-5.webp'
+    ],
+    cute: pathArt('cat','radiant'),
+    mythic: pathArt('cat','valiant'),
+    ferocious: pathArt('cat','ferocious')
   }
 };
 function artForCharacter(ch,tierIndex){
@@ -1434,6 +1615,18 @@ function buildArmorSVG(color){
     '<circle cx="50" cy="26" r="7" fill="'+color+'"/>'+
   '</svg>';
 }
+function renderCompanionShowcase(player){
+  var box=el('companionShowcase'); if(!box) return;
+  var comp=player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
+  if(!comp){ box.style.display='none'; return; }
+  box.style.display='flex';
+  var art=companionArtFor(comp.id);
+  el('companionShowcaseArt').innerHTML = art
+    ? '<img src="'+art+'" alt="'+escapeHtml(comp.name)+'" loading="lazy">'
+    : comp.emoji;
+  el('companionShowcaseName').textContent=comp.name;
+  el('companionShowcaseBonus').textContent='+'+comp.hpBonus+'❤️ Max HP in battle';
+}
 function renderPortrait(container,player,size,charOverride){
   if(!container) return;
   var ch=charOverride||activeCharacter(player);
@@ -1457,7 +1650,7 @@ function renderPortrait(container,player,size,charOverride){
       (size==='hero'?'':'<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>')+
       '<img class="portrait-art" src="'+art+'" alt="'+escapeHtml(stage.title)+'" loading="lazy">'+
       (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
-      (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
+      (comp&&size!=='hero'?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
     return;
   }
 
@@ -1480,7 +1673,7 @@ function renderPortrait(container,player,size,charOverride){
     armorHtml+
     decorHtml+
     (stage.index===0?'<div class="portrait-cute">✨</div>':'')+
-    (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
+    (comp&&size!=='hero'?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
 }
 
 /* ---------- text generation ---------- */
@@ -1837,6 +2030,7 @@ function renderCharacterScreen(){
   var w=equippedWeapon(p);
   el('charWeapon').textContent=w.emoji+' '+w.name;
   renderPortrait(el('charPortrait'),p,'hero');
+  renderCompanionShowcase(p);
 
   var power=playerCombatPower(p);
   el('powerHp').textContent=5+power.hpBonus;
@@ -1872,7 +2066,6 @@ function renderCharacterScreen(){
   }
 
   renderRoster();
-  renderFingerReport();
   renderShop('hat',HATS,'shopHats');
   renderShop('companion',COMPANIONS,'shopCompanions');
   renderShop('aura',AURAS,'shopAuras');
@@ -1923,6 +2116,159 @@ function renderFingerReport(){
     practiceBtn.onclick=function(){ startFingerDrill(weak); };
   } else {
     practiceBtn.style.display='none';
+  }
+}
+
+/* ================= PROGRESS SCREEN =================
+   A dashboard pulled together from data the game already tracks
+   (subProgress, badges, gearWorlds, fingerStats...) rather than a new
+   history log -- world id doubles as a rough timeline since worlds are
+   cleared in sequence, so "best WPM per world" is a real trend line
+   without needing to store timestamped samples. */
+function goToProgress(){ renderProgressScreen(); showScreen('progress'); }
+
+function statTile(icon,value,label,note,complete){
+  var d=document.createElement('div');
+  d.className='stat-tile'+(complete?' complete':'');
+  d.innerHTML='<div class="sti">'+icon+'</div><div class="stv">'+escapeHtml(String(value))+'</div><div class="stl">'+escapeHtml(label)+'</div>'+
+    (note?('<div class="stn">'+note+'</div>'):'');
+  return d;
+}
+function renderRewardsGrid(p){
+  var grid=el('rewardsGrid'); grid.innerHTML='';
+
+  var badgesOwned=p.badges.length;
+  var nextBadge=BADGES.find(function(b){return p.badges.indexOf(b.id)===-1;});
+  grid.appendChild(statTile('🏅',badgesOwned+'/'+BADGES.length,'Badges',
+    nextBadge?('Next: '+nextBadge.emoji+' '+escapeHtml(nextBadge.name)):'All earned!',badgesOwned===BADGES.length));
+
+  var gearOwned=(p.gearWorlds||[]).length;
+  var nextGear=GEAR.find(function(g){return (p.gearWorlds||[]).indexOf(g.worldId)===-1;});
+  grid.appendChild(statTile('🔫',gearOwned+'/'+GEAR.length,'Gear',
+    nextGear?('Next: '+nextGear.emoji+' World '+nextGear.worldId+' boss'):'All collected!',gearOwned===GEAR.length));
+
+  var avatarsOwned=p.characters.length;
+  var lockedAvatars=Object.keys(AVATAR_UNLOCK_WORLD)
+    .filter(function(a){return !p.characters.some(function(c){return c.avatar===a;});})
+    .sort(function(a,b){return AVATAR_UNLOCK_WORLD[a]-AVATAR_UNLOCK_WORLD[b];});
+  var nextAvatarNote='All recruited!';
+  if(lockedAvatars.length){
+    var na=lockedAvatars[0];
+    nextAvatarNote = isAvatarUnlocked(p,na) ? ('Next: '+na+' — recruit it!') : ('Next: '+na+' at World '+AVATAR_UNLOCK_WORLD[na]);
+  }
+  grid.appendChild(statTile('🐾',avatarsOwned+'/'+AVATARS.length,'Avatars',nextAvatarNote,avatarsOwned===AVATARS.length));
+
+  var titlesOwned=(p.ownedTitles||[]).length;
+  var nextTitle=TITLES.find(function(t){return (p.ownedTitles||[]).indexOf(t.id)===-1;});
+  var nextTitleNote='All earned!';
+  if(nextTitle){
+    if(isCosmeticUnlocked(p,nextTitle)){
+      nextTitleNote='Next: '+nextTitle.emoji+' '+escapeHtml(nextTitle.name)+' — unlocked, buy it!';
+    } else {
+      var tb=BADGES.find(function(b){return b.id===nextTitle.unlockBadge;});
+      nextTitleNote='Next: '+nextTitle.emoji+' '+escapeHtml(nextTitle.name)+(tb?(' ('+escapeHtml(tb.name)+' badge)'):'');
+    }
+  }
+  grid.appendChild(statTile('🏷️',titlesOwned+'/'+TITLES.length,'Titles',nextTitleNote,titlesOwned===TITLES.length));
+}
+function renderStatsGrid(p){
+  var grid=el('statsHighlightGrid'); grid.innerHTML='';
+  var entries=allSubEntries(p);
+  var bestWpm=entries.reduce(function(m,e){return Math.max(m,e.bestWpm||0);},0);
+  var bestAcc=entries.reduce(function(m,e){return Math.max(m,e.bestAcc||0);},0);
+  grid.appendChild(statTile('🏆',bestWpm,'Best WPM Ever'));
+  grid.appendChild(statTile('🎯',bestAcc+'%','Best Accuracy Ever'));
+  grid.appendChild(statTile('🔥',p.bestCombo||0,'Longest Combo'));
+  grid.appendChild(statTile('⌨️',p.totalCharsTyped||0,'Characters Typed'));
+  grid.appendChild(statTile('⚔️',p.fightsWon||0,'Fights Won'));
+  grid.appendChild(statTile('💎',p.flawlessWins||0,'Flawless Wins'));
+  grid.appendChild(statTile('⭐',totalStars(p),'Total Stars'));
+  grid.appendChild(statTile('👑',bossesCleared(p)+'/'+LEVELS.length,'Bosses Cleared'));
+  grid.appendChild(statTile('🗓️',Object.keys(p.dailyStats||{}).length,'Days Played'));
+}
+/* One point per world that has any attempt, using the best value seen
+   across whichever stages (practice/skirmish/boss) were played there --
+   world id order stands in for a timeline. */
+function progressChartData(p,field){
+  var worldIds=Object.keys(p.subProgress||{}).map(Number).sort(function(a,b){return a-b;});
+  var points=[];
+  worldIds.forEach(function(w){
+    var stages=p.subProgress[w];
+    var best=0, any=false;
+    STAGE_ORDER.forEach(function(sk){
+      var e=stages[sk]; if(!e) return;
+      any=true; best=Math.max(best,e[field]||0);
+    });
+    if(any) points.push({x:w,y:best});
+  });
+  return points;
+}
+function buildLineChartSVG(points,color,suffix,yMax){
+  var w=280,h=90,padL=26,padR=8,padT=10,padB=18;
+  var innerW=w-padL-padR, innerH=h-padT-padB;
+  var xs=points.map(function(p){return p.x;});
+  var xMin=Math.min.apply(null,xs), xMax=Math.max.apply(null,xs);
+  var xRange=Math.max(1,xMax-xMin);
+  var yMin=0;
+  if(yMax==null) yMax=Math.max.apply(null,points.map(function(p){return p.y;}))*1.15;
+  if(yMax<=yMin) yMax=yMin+1;
+  function px(x){ return padL + (xMax===xMin ? innerW/2 : (x-xMin)/xRange*innerW); }
+  function py(y){ return padT + innerH - Math.max(0,Math.min(1,(y-yMin)/(yMax-yMin)))*innerH; }
+  var pathD=points.map(function(p,i){ return (i===0?'M':'L')+px(p.x).toFixed(1)+','+py(p.y).toFixed(1); }).join(' ');
+  var dots=points.map(function(p){
+    var label=p.label!=null?p.label:('World '+p.x);
+    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>'+label+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
+  }).join('');
+  var baseline='<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(padL+innerW)+'" y2="'+(padT+innerH)+'" stroke="var(--border)" stroke-width="1"/>';
+  var maxLabel='<text x="0" y="'+(padT+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMax)+'</text>';
+  var minLabel='<text x="0" y="'+(padT+innerH+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMin)+'</text>';
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;overflow:visible;display:block;">'+
+    baseline+maxLabel+minLabel+
+    '<path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    dots+
+  '</svg>';
+}
+function renderProgressScreen(){
+  var p=getCurrentPlayer(); if(!p) return;
+  el('progName').textContent=p.name;
+  var rank=rankFor(p);
+  el('progRank').textContent=rank.title;
+  el('progRank').style.background=rank.frame;
+  renderPortrait(el('progPortrait'),p,'hero');
+  var stage=stageFor(p);
+  el('progTierLine').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
+
+  renderRewardsGrid(p);
+  renderStatsGrid(p);
+  renderFingerReport();
+
+  var wpmPoints=progressChartData(p,'bestWpm');
+  var accPoints=progressChartData(p,'bestAcc');
+  var blurb=el('progChartBlurb'), row=el('progChartRow');
+  if(wpmPoints.length<2){
+    blurb.style.display='block';
+    row.style.display='none';
+  } else {
+    blurb.style.display='none';
+    row.style.display='flex';
+    el('chartWpm').innerHTML=buildLineChartSVG(wpmPoints,'var(--accent)',' wpm');
+    el('chartAcc').innerHTML=buildLineChartSVG(accPoints,'var(--good)','%',100);
+  }
+
+  var dailyWpmPoints=dailyChartData(p,'bestWpm');
+  var dailyAccPoints=dailyChartData(p,'bestAcc');
+  var dblurb=el('dailyChartBlurb'), drow=el('dailyChartRow');
+  if(dailyWpmPoints.length<2){
+    dblurb.style.display='block';
+    drow.style.display='none';
+  } else {
+    dblurb.style.display='none';
+    drow.style.display='flex';
+    el('chartDailyWpm').innerHTML=buildLineChartSVG(dailyWpmPoints,'var(--accent)',' wpm');
+    el('chartDailyAcc').innerHTML=buildLineChartSVG(dailyAccPoints,'var(--good)','%',100);
+    var firstLabel=formatDayLabel(dailyWpmPoints[0].label), lastLabel=formatDayLabel(dailyWpmPoints[dailyWpmPoints.length-1].label);
+    el('dailyWpmRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
+    el('dailyAccRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
   }
 }
 function renderRoster(){
@@ -2150,6 +2496,8 @@ function buyOrEquip(category,itemId){
 }
 el('btnCharacter').addEventListener('click',goToCharacter);
 el('btnCharBack').addEventListener('click',goToMap);
+el('btnProgress').addEventListener('click',goToProgress);
+el('btnProgressBack').addEventListener('click',goToMap);
 el('btnTutorial').addEventListener('click',goToTutorial);
 el('btnTutorialClose').addEventListener('click',goToMap);
 el('btnTutorialDone').addEventListener('click',goToMap);
@@ -2378,7 +2726,7 @@ function finishFingerDrill(){
   var fingerId=playState.drillFinger;
   var lifetimeAcc=fingerAccuracy(player.fingerStats,fingerId);
 
-  goToCharacter();
+  goToProgress();
 
   var blurb=el('fingerReportBlurb');
   var banner=document.createElement('div');
@@ -2703,8 +3051,10 @@ function finishLevel(kind){
     timesCleared: (prev.timesCleared||0) + (passed?1:0)
   };
   player.totalCharsTyped=(player.totalCharsTyped||0)+playState.correct;
+  player.bestCombo=Math.max(player.bestCombo||0,playState.maxCombo||0);
   player.fingerStats=player.fingerStats||emptyFingerStats();
   mergeFingerStats(player.fingerStats,playState.fingerStats);
+  if(playState.startTime) recordDailyStat(player,wpm,acc);
 
   if(playState.combat && kind==='win'){
     player.fightsWon=(player.fightsWon||0)+1;
