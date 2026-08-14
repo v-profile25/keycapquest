@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { freshProfile, seedPlayer, clearedThrough } = require('./helpers');
+const { freshProfile, seedPlayer, clearedThrough, typeCurrentTextCorrectly } = require('./helpers');
 
 module.exports = function (test) {
   test('shows rewards earned, trend charts, and stat highlights', async ({ page, baseUrl }) => {
@@ -66,5 +66,44 @@ module.exports = function (test) {
     assert.strictEqual(chartRowDisplay, 'none');
     const rewardsCount = await page.evaluate(() => document.querySelectorAll('#rewardsGrid .stat-tile').length);
     assert.strictEqual(rewardsCount, 4, 'rewards grid should still render 4 tiles (all at 0) with no progress yet');
+  });
+
+  test('tracks calendar-time progress separately from per-world progress', async ({ page, baseUrl }) => {
+    await freshProfile(page, baseUrl, 'DailyTest');
+
+    // Live playthrough: finishLevel should record a dailyStats entry for today.
+    await page.click('.node');
+    await page.click('.stage-card'); // practice
+    await page.click('#btnStartLevel');
+    await page.waitForTimeout(150);
+    await typeCurrentTextCorrectly(page);
+    const today = new Date().toISOString().slice(0, 10);
+    const daily = await page.evaluate(() => JSON.parse(localStorage.getItem('keycapQuest.v3')).players[0].dailyStats);
+    assert.ok(daily && daily[new Date().toISOString().slice(0, 10)], 'finishLevel should record a dailyStats entry keyed by today\'s date');
+    assert.strictEqual(daily[today].attempts, 1);
+    assert.ok(daily[today].bestWpm > 0);
+
+    // Seed a multi-day history to check the "since you started" charts render.
+    await seedPlayer(page, {
+      dailyStats: {
+        '2026-08-01': { attempts: 3, bestWpm: 12, bestAcc: 78 },
+        '2026-08-03': { attempts: 5, bestWpm: 16, bestAcc: 82 },
+        '2026-08-07': { attempts: 4, bestWpm: 19, bestAcc: 85 },
+        '2026-08-10': { attempts: 6, bestWpm: 24, bestAcc: 90 },
+        '2026-08-14': { attempts: 2, bestWpm: 29, bestAcc: 94 },
+      },
+    });
+    await page.click('#btnProgress');
+    await page.waitForTimeout(250);
+
+    const rowDisplay = await page.evaluate(() => getComputedStyle(document.getElementById('dailyChartRow')).display);
+    assert.strictEqual(rowDisplay, 'flex', 'daily trend charts should show once 2+ days have data');
+    const wpmPoints = await page.evaluate(() => document.querySelectorAll('#chartDailyWpm circle').length);
+    assert.strictEqual(wpmPoints, 5, 'one point per day played, independent of world progress');
+    const range = await page.evaluate(() => document.getElementById('dailyWpmRange').textContent);
+    assert.match(range, /Aug 1/);
+    assert.match(range, /Aug 14/);
+    const daysPlayedTile = await page.evaluate(() => Array.from(document.querySelectorAll('#statsHighlightGrid .stat-tile')).find((t) => t.textContent.includes('Days Played'))?.textContent);
+    assert.match(daysPlayedTile || '', /^🗓️5/);
   });
 };

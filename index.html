@@ -383,6 +383,7 @@
   .chart-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
   .chart-card{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px 8px;box-shadow:var(--key-shadow);}
   .chart-title{font-family:var(--font-display);font-weight:800;font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
+  .chart-daterange{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.62rem;color:var(--ink-soft);margin-top:2px;}
   .char-weapon b{color:var(--ink);}
   .growth-panel{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0 4px;box-shadow:var(--key-shadow);}
   .growth-head{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-display);font-weight:800;font-size:.95rem;margin-bottom:8px;}
@@ -594,7 +595,7 @@
     <h3 class="shop-heading">🎁 Rewards Earned</h3>
     <div class="tile-grid" id="rewardsGrid"></div>
 
-    <h3 class="shop-heading">📈 Progress Over Time</h3>
+    <h3 class="shop-heading">📈 Progress by World</h3>
     <p class="hero-sub" id="progChartBlurb">Clear a few stages to start seeing your trend lines here.</p>
     <div class="chart-row" id="progChartRow" style="display:none;">
       <div class="chart-card">
@@ -604,6 +605,21 @@
       <div class="chart-card">
         <div class="chart-title">Best Accuracy per World</div>
         <div id="chartAcc"></div>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">🗓️ Since You Started Playing</h3>
+    <p class="hero-sub" id="dailyChartBlurb">Play on a couple different days and this'll start tracking whether you're getting faster and more accurate over time.</p>
+    <div class="chart-row" id="dailyChartRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">Best WPM per Day Played</div>
+        <div id="chartDailyWpm"></div>
+        <div class="chart-daterange" id="dailyWpmRange"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Best Accuracy per Day Played</div>
+        <div id="chartDailyAcc"></div>
+        <div class="chart-daterange" id="dailyAccRange"></div>
       </div>
     </div>
 
@@ -1267,6 +1283,31 @@ var DATA=loadData();
 
 function getCurrentPlayer(){ return DATA.players.find(function(p){return p.id===DATA.lastPlayerId;}); }
 function totalStars(p){ var t=0; allSubEntries(p).forEach(function(e){t+=e.stars||0;}); return t; }
+/* Calendar-time progress, separate from per-world progress -- one entry
+   per day actually played (not per attempt, so this can't grow
+   unbounded), tracking that day's best WPM/accuracy. World id already
+   doubles as a rough timeline for campaign progress, but doesn't answer
+   "am I getting faster over the weeks I've been playing" the way a
+   real date-keyed log does. Only starts recording from whenever this
+   shipped -- there's no way to backfill history for existing saves. */
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function recordDailyStat(player,wpm,acc){
+  player.dailyStats=player.dailyStats||{};
+  var key=todayKey();
+  var day=player.dailyStats[key]||{attempts:0,bestWpm:0,bestAcc:0};
+  day.attempts++;
+  day.bestWpm=Math.max(day.bestWpm,wpm);
+  day.bestAcc=Math.max(day.bestAcc,acc);
+  player.dailyStats[key]=day;
+}
+function dailyChartData(p,field){
+  var days=Object.keys(p.dailyStats||{}).sort();
+  return days.map(function(d,i){ return {x:i, y:p.dailyStats[d][field]||0, label:d}; });
+}
+function formatDayLabel(isoDate){
+  var d=new Date(isoDate+'T00:00:00');
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function equippedWeapon(player){
   var owned=player.gearWorlds||[];
@@ -2110,6 +2151,7 @@ function renderStatsGrid(p){
   grid.appendChild(statTile('💎',p.flawlessWins||0,'Flawless Wins'));
   grid.appendChild(statTile('⭐',totalStars(p),'Total Stars'));
   grid.appendChild(statTile('👑',bossesCleared(p)+'/'+LEVELS.length,'Bosses Cleared'));
+  grid.appendChild(statTile('🗓️',Object.keys(p.dailyStats||{}).length,'Days Played'));
 }
 /* One point per world that has any attempt, using the best value seen
    across whichever stages (practice/skirmish/boss) were played there --
@@ -2141,7 +2183,8 @@ function buildLineChartSVG(points,color,suffix,yMax){
   function py(y){ return padT + innerH - Math.max(0,Math.min(1,(y-yMin)/(yMax-yMin)))*innerH; }
   var pathD=points.map(function(p,i){ return (i===0?'M':'L')+px(p.x).toFixed(1)+','+py(p.y).toFixed(1); }).join(' ');
   var dots=points.map(function(p){
-    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>World '+p.x+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
+    var label=p.label!=null?p.label:('World '+p.x);
+    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>'+label+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
   }).join('');
   var baseline='<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(padL+innerW)+'" y2="'+(padT+innerH)+'" stroke="var(--border)" stroke-width="1"/>';
   var maxLabel='<text x="0" y="'+(padT+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMax)+'</text>';
@@ -2177,6 +2220,22 @@ function renderProgressScreen(){
     row.style.display='flex';
     el('chartWpm').innerHTML=buildLineChartSVG(wpmPoints,'var(--accent)',' wpm');
     el('chartAcc').innerHTML=buildLineChartSVG(accPoints,'var(--good)','%',100);
+  }
+
+  var dailyWpmPoints=dailyChartData(p,'bestWpm');
+  var dailyAccPoints=dailyChartData(p,'bestAcc');
+  var dblurb=el('dailyChartBlurb'), drow=el('dailyChartRow');
+  if(dailyWpmPoints.length<2){
+    dblurb.style.display='block';
+    drow.style.display='none';
+  } else {
+    dblurb.style.display='none';
+    drow.style.display='flex';
+    el('chartDailyWpm').innerHTML=buildLineChartSVG(dailyWpmPoints,'var(--accent)',' wpm');
+    el('chartDailyAcc').innerHTML=buildLineChartSVG(dailyAccPoints,'var(--good)','%',100);
+    var firstLabel=formatDayLabel(dailyWpmPoints[0].label), lastLabel=formatDayLabel(dailyWpmPoints[dailyWpmPoints.length-1].label);
+    el('dailyWpmRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
+    el('dailyAccRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
   }
 }
 function renderRoster(){
@@ -2962,6 +3021,7 @@ function finishLevel(kind){
   player.bestCombo=Math.max(player.bestCombo||0,playState.maxCombo||0);
   player.fingerStats=player.fingerStats||emptyFingerStats();
   mergeFingerStats(player.fingerStats,playState.fingerStats);
+  if(playState.startTime) recordDailyStat(player,wpm,acc);
 
   if(playState.combat && kind==='win'){
     player.fightsWon=(player.fightsWon||0)+1;
