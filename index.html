@@ -1174,7 +1174,20 @@ var COMPANIONS=[
    no tiers), at assets/companions/<id>.webp. Same convention as
    CHARACTER_ART: missing entries just fall back to a large emoji, so
    companions can be illustrated one at a time. */
-var COMPANION_ART={};
+var COMPANION_ART={
+  chick:'assets/companions/chick.webp',
+  butterfly:'assets/companions/butterfly.webp',
+  fish:'assets/companions/fish.webp',
+  turtle:'assets/companions/turtle.webp',
+  bee:'assets/companions/bee.webp',
+  fox:'assets/companions/fox.webp',
+  owl:'assets/companions/owl.webp',
+  penguin:'assets/companions/penguin.webp',
+  unicorn:'assets/companions/unicorn.webp',
+  octopus:'assets/companions/octopus.webp',
+  ghost:'assets/companions/ghost.webp',
+  dragon:'assets/companions/dragon.webp'
+};
 function companionArtFor(id){ return COMPANION_ART[id]||null; }
 var AURAS=[
   {id:'sunny',name:'Sunny',a:'#ffe066',b:'#ffd43b',price:20},

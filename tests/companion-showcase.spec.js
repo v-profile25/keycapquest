@@ -35,8 +35,10 @@ module.exports = function (test) {
       await page.evaluate(() => document.getElementById('companionShowcaseBonus').textContent),
       /^\+1❤️ Max HP in battle$/
     );
-    // No assets/companions/chick.webp yet, so it should fall back to the emoji.
-    assert.strictEqual(await page.evaluate(() => document.getElementById('companionShowcaseArt').innerHTML), '🐤');
+    assert.strictEqual(
+      await page.evaluate(() => document.querySelector('#companionShowcaseArt img')?.getAttribute('src')),
+      'assets/companions/chick.webp'
+    );
     assert.strictEqual(
       await page.evaluate(() => !!document.querySelector('#charPortrait .portrait-companion')),
       false,
