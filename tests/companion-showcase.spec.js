@@ -56,4 +56,29 @@ module.exports = function (test) {
       'compact battle-arena portrait should still show the quick-glance badge'
     );
   });
+
+  test('also shows the companion showcase on the Progress screen, not just Character', async ({ page, baseUrl }) => {
+    await freshProfile(page, baseUrl, 'ProgCompTest');
+    await seedPlayer(page, { gold: 5000 });
+
+    await page.click('#btnCharacter');
+    await page.waitForTimeout(200);
+    await page.click('#shopCompanions .shop-item:nth-child(1)');
+    await page.waitForTimeout(200);
+
+    await page.click('#btnProgress');
+    await page.waitForTimeout(200);
+
+    assert.strictEqual(
+      await page.evaluate(() => getComputedStyle(document.getElementById('progCompanionShowcase')).display),
+      'flex',
+      'Progress screen has its own hero portrait and needs its own showcase, not just Character'
+    );
+    assert.strictEqual(await page.evaluate(() => document.getElementById('progCompanionShowcaseName').textContent), 'Chick');
+    assert.strictEqual(
+      await page.evaluate(() => !!document.querySelector('#progPortrait .portrait-companion')),
+      false,
+      'Progress screen hero portrait should not show the tiny badge either'
+    );
+  });
 };

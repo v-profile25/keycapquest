@@ -604,6 +604,14 @@
       <div class="portrait portrait-hero" id="progPortrait"></div>
       <div class="char-card-plate" id="progRank">Rookie Typist</div>
     </div>
+    <div class="companion-showcase" id="progCompanionShowcase" style="display:none;">
+      <div class="companion-showcase-art" id="progCompanionShowcaseArt"></div>
+      <div class="companion-showcase-info">
+        <div class="companion-showcase-label">🐾 Your Companion</div>
+        <div class="companion-showcase-name" id="progCompanionShowcaseName">Chick</div>
+        <div class="companion-showcase-bonus" id="progCompanionShowcaseBonus">+1 HP in battle</div>
+      </div>
+    </div>
     <p class="hero-sub" id="progTierLine" style="text-align:center;"></p>
 
     <h3 class="shop-heading">🎁 Rewards Earned</h3>
@@ -1615,17 +1623,18 @@ function buildArmorSVG(color){
     '<circle cx="50" cy="26" r="7" fill="'+color+'"/>'+
   '</svg>';
 }
-function renderCompanionShowcase(player){
-  var box=el('companionShowcase'); if(!box) return;
+function renderCompanionShowcase(player,idPrefix){
+  idPrefix=idPrefix||'companionShowcase';
+  var box=el(idPrefix); if(!box) return;
   var comp=player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
   if(!comp){ box.style.display='none'; return; }
   box.style.display='flex';
   var art=companionArtFor(comp.id);
-  el('companionShowcaseArt').innerHTML = art
+  el(idPrefix+'Art').innerHTML = art
     ? '<img src="'+art+'" alt="'+escapeHtml(comp.name)+'" loading="lazy">'
     : comp.emoji;
-  el('companionShowcaseName').textContent=comp.name;
-  el('companionShowcaseBonus').textContent='+'+comp.hpBonus+'❤️ Max HP in battle';
+  el(idPrefix+'Name').textContent=comp.name;
+  el(idPrefix+'Bonus').textContent='+'+comp.hpBonus+'❤️ Max HP in battle';
 }
 function renderPortrait(container,player,size,charOverride){
   if(!container) return;
@@ -2235,6 +2244,7 @@ function renderProgressScreen(){
   el('progRank').textContent=rank.title;
   el('progRank').style.background=rank.frame;
   renderPortrait(el('progPortrait'),p,'hero');
+  renderCompanionShowcase(p,'progCompanionShowcase');
   var stage=stageFor(p);
   el('progTierLine').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
 
