@@ -1225,45 +1225,58 @@ var GROWTH_TIERS=[
    armored, mighty but heroic, never a monster). Freely re-choosable. */
 var EVOLUTION_PATHS=[
   {id:'cute',name:'Radiant',emoji:'🌟',tagline:'Magical & sparkling',desc:'A glowing path of starlight, aurora and crystal. Still incredibly powerful -- just friendly-powerful.'},
-  {id:'mythic',name:'Valiant',emoji:'🛡️',tagline:'Noble & mighty',desc:'A bold path of armored guardians and legendary champions. Strong and fierce, always heroic.'}
+  {id:'mythic',name:'Valiant',emoji:'🛡️',tagline:'Noble & mighty',desc:'A bold path of armored guardians and legendary champions. Strong and fierce, always heroic.'},
+  {id:'ferocious',name:'Ferocious',emoji:'🔥',tagline:'Fierce & untamed',desc:'A wild path of primal strength and blazing intensity. Bold and battle-ready, straight off the front line.'}
 ];
 var AVATAR_THEMES={
   '🦊':{base:['Fox Kit','Fox Pup','Sly Fox','Swift Fox','Ember Fox'],
     cute:['Moonlit Fox','Starlight Vixen','Aurora Kitsune','Celestial Fox Spirit','Astral Kitsune Empress'],
-    mythic:['Blaze Fox','Flame-Tail Fox','Nine-Tail Guardian','Dawn Kitsune','Dragonfox Sovereign']},
+    mythic:['Blaze Fox','Flame-Tail Fox','Nine-Tail Guardian','Dawn Kitsune','Dragonfox Sovereign'],
+    ferocious:['Feral Fox','Blazefang Fox','Inferno Fox Reaver','Warbound Foxblade','Infernal Fox Warlord']},
   '🐯':{base:['Tiger Cub','Young Tiger','Bold Tiger','Swift Tiger','Bright Tiger'],
     cute:['Aurora Tiger','Starlit Tiger','Crystal Tiger Spirit','Celestial White Tiger','Astral Tiger Empress'],
-    mythic:['Storm Tiger','Thunder Tiger','Sabertooth Guardian','Dragon-Striped Tiger','Tiger Sovereign']},
+    mythic:['Storm Tiger','Thunder Tiger','Sabertooth Guardian','Dragon-Striped Tiger','Tiger Sovereign'],
+    ferocious:['Feral Tiger','Bloodstripe Tiger','Warfang Tiger','Berserker Tiger','Inferno Tiger Warlord']},
   '🐼':{base:['Panda Pup','Panda Cub','Roly-Poly Panda','Bamboo Scout','Jade Panda'],
     cute:['Blossom Panda','Starlight Panda','Crystal Panda Spirit','Celestial Panda','Astral Panda Sage'],
-    mythic:['Storm Panda','Bamboo Guardian','Panda Warrior','Panda Dragonlord','Panda Titan']},
+    mythic:['Storm Panda','Bamboo Guardian','Panda Warrior','Panda Dragonlord','Panda Titan'],
+    ferocious:['Feral Panda','Ironclaw Panda','Warbound Panda','Berserker Panda','Panda Warlord']},
   '🦁':{base:['Lion Cub','Young Lion','Playful Lion','Proud Lion','Golden Lion'],
     cute:['Sunbeam Lion','Starlight Lion','Crystal-Maned Lion','Celestial Lion Spirit','Astral Lion Empress'],
-    mythic:['Sun Lion','Storm-Maned Lion','Lion Guardian','Dragon-Maned Lion','Lion Sovereign']},
+    mythic:['Sun Lion','Storm-Maned Lion','Lion Guardian','Dragon-Maned Lion','Lion Sovereign'],
+    ferocious:['Feral Lion','Bloodmane Lion','Warfang Lion','Berserker Lion','Inferno Lion Warlord']},
   '🐸':{base:['Tadpole','Froglet','Leaping Frog','Pond Hopper','Bright Frog'],
     cute:['Dew Frog','Starlight Frog','Crystal Lily Frog','Celestial Frog Spirit','Astral Frog Sprite'],
-    mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus']},
+    mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus'],
+    ferocious:['Feral Frog','Venomstrike Frog','Warbound Toad','Berserker Toad','Toad Warlord']},
   '🐵':{base:['Baby Monkey','Young Monkey','Nimble Monkey','Playful Monkey','Jungle Monkey'],
     cute:['Starlight Monkey','Moonvine Monkey','Crystal Monkey Spirit','Celestial Monkey','Astral Monkey Sage'],
-    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign']},
+    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign'],
+    ferocious:['Feral Monkey','Ironfist Monkey','Warbound Monkey','Berserker Monkey','Monkey Warlord']},
   '🦄':{base:['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn'],
     cute:['Comet Unicorn','Aurora Unicorn','Crystal Unicorn Spirit','Celestial Unicorn','Astral Unicorn Empress'],
-    mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign']},
+    mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign'],
+    ferocious:['Feral Unicorn','Bloodhorn Unicorn','Warbound Unicorn','Berserker Unicorn','Unicorn Warlord']},
   '🐨':{base:['Koala Joey','Young Koala','Sleepy Koala','Eucalyptus Koala','Cloud Koala'],
     cute:['Starlight Koala','Dreamy Koala','Crystal Koala Spirit','Celestial Koala','Astral Koala Sage'],
-    mythic:['Storm Koala','Koala Guardian','Koala Champion','Koala Dragonlord','Koala Titan']},
+    mythic:['Storm Koala','Koala Guardian','Koala Champion','Koala Dragonlord','Koala Titan'],
+    ferocious:['Feral Koala','Ironclaw Koala','Warbound Koala','Berserker Koala','Koala Warlord']},
   '🐶':{base:['Puppy','Young Pup','Loyal Hound','Brave Dog','Storm Hound'],
     cute:['Starlight Hound','Aurora Pup','Crystal-Coat Hound','Celestial Guardian Dog','Astral Hound Spirit'],
-    mythic:['Thunder Wolfhound','Alpha Guardian','Storm-Crowned Wolfhound','Dragon-Fang Wolfhound','Mecha War-Dog Sovereign']},
+    mythic:['Thunder Wolfhound','Alpha Guardian','Storm-Crowned Wolfhound','Dragon-Fang Wolfhound','Mecha War-Dog Sovereign'],
+    ferocious:['Feral Hound','Bloodfang Wolfhound','Warbound Wolfhound','Berserker Warhound','Infernal War-Dog Warlord']},
   '🐱':{base:['Kitten','Young Cat','Curious Cat','Playful Cat','Bright Cat'],
     cute:['Starlight Cat','Moonlit Cat','Crystal Cat Spirit','Celestial Cat','Astral Cat Empress'],
-    mythic:['Storm Cat','Cat Guardian','Cat Champion','Cat Dragonlord','Cat Sovereign']},
+    mythic:['Storm Cat','Cat Guardian','Cat Champion','Cat Dragonlord','Cat Sovereign'],
+    ferocious:['Feral Cat','Bloodclaw Cat','Warbound Cat','Berserker Cat','Cat Warlord']},
   '🐰':{base:['Bunny Kit','Young Rabbit','Quick Rabbit','Lucky Rabbit','Bright Rabbit'],
     cute:['Moon Rabbit','Starlight Hare','Crystal Rabbit Spirit','Celestial Hare','Astral Rabbit Empress'],
-    mythic:['Storm Rabbit','Thunder Hare','Rabbit Guardian','Rabbit Dragonlord','Rabbit Sovereign']},
+    mythic:['Storm Rabbit','Thunder Hare','Rabbit Guardian','Rabbit Dragonlord','Rabbit Sovereign'],
+    ferocious:['Feral Hare','Bloodfang Hare','Warbound Hare','Berserker Hare','Hare Warlord']},
   '🐻':{base:['Bear Cub','Young Bear','Curious Bear','Playful Bear','Bright Bear'],
     cute:['Starlight Bear','Aurora Bear','Crystal Bear Spirit','Celestial Bear','Astral Bear Sage'],
-    mythic:['Storm Bear','Bear Guardian','Bear Champion','Bear Dragonlord','Bear Sovereign']}
+    mythic:['Storm Bear','Bear Guardian','Bear Champion','Bear Dragonlord','Bear Sovereign'],
+    ferocious:['Feral Bear','Ironclaw Bear','Warbound Bear','Berserker Bear','Bear Warlord']}
 };
 var AVATAR_SLUGS={
   '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
@@ -1365,16 +1378,28 @@ function switchActiveCharacter(id){
    the shared tiers 1-5; "cute" and "mythic" cover tiers 6-10 once a path
    is chosen. A missing entry falls back to the emoji + SVG effect-layer
    portrait automatically -- nothing has to ship at once. */
+function pathArt(slug,path,tiers){
+  tiers=tiers||[6,7,8,9,10];
+  return tiers.map(function(t){ return 'assets/characters/'+slug+'/tier-'+t+'-'+path+'.webp'; });
+}
 var CHARACTER_ART={
   dog:{
     base:[
       'assets/characters/dog/tier-1.webp','assets/characters/dog/tier-2.webp','assets/characters/dog/tier-3.webp',
       'assets/characters/dog/tier-4.webp','assets/characters/dog/tier-5.webp'
     ],
-    mythic:[
-      'assets/characters/dog/tier-6.webp','assets/characters/dog/tier-7.webp','assets/characters/dog/tier-8.webp',
-      'assets/characters/dog/tier-9.webp','assets/characters/dog/tier-10.webp'
-    ]
+    cute: pathArt('dog','radiant'),
+    mythic: pathArt('dog','valiant'),
+    ferocious: pathArt('dog','ferocious')
+  },
+  fox:{
+    base:[
+      'assets/characters/fox/tier-1.webp','assets/characters/fox/tier-2.webp','assets/characters/fox/tier-3.webp',
+      'assets/characters/fox/tier-4.webp','assets/characters/fox/tier-5.webp'
+    ],
+    cute: pathArt('fox','radiant'),
+    mythic: pathArt('fox','valiant'),
+    ferocious: pathArt('fox','ferocious')
   }
 };
 function artForCharacter(ch,tierIndex){
