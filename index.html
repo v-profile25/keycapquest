@@ -355,6 +355,12 @@
   .char-hero-stage{position:relative;max-width:420px;margin:26px auto 4px;padding-top:20px;}
   .char-hero-stage .portrait-hero{width:100%;height:340px;margin:0 auto;}
   .char-card-plate{position:relative;z-index:4;width:fit-content;margin:8px auto 0;padding:7px 18px 9px;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;text-align:center;color:#1a1d22;background:var(--border);box-shadow:var(--key-shadow);}
+  .companion-showcase{display:flex;align-items:center;gap:16px;max-width:420px;margin:16px auto 0;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--key-shadow);}
+  .companion-showcase-art{width:96px;height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:4.4rem;line-height:1;filter:drop-shadow(0 5px 8px rgba(0,0,0,.28));}
+  .companion-showcase-art img{width:100%;height:100%;object-fit:contain;}
+  .companion-showcase-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:2px;}
+  .companion-showcase-name{font-family:var(--font-display);font-weight:800;font-size:1.05rem;}
+  .companion-showcase-bonus{font-family:var(--font-mono);font-size:.72rem;color:var(--good);margin-top:3px;}
   .char-info{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:10px;}
   .char-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;}
   .char-stats div{display:flex;flex-direction:column;font-family:var(--font-mono);}
@@ -383,6 +389,7 @@
   .chart-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
   .chart-card{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px 8px;box-shadow:var(--key-shadow);}
   .chart-title{font-family:var(--font-display);font-weight:800;font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
+  .chart-daterange{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.62rem;color:var(--ink-soft);margin-top:2px;}
   .char-weapon b{color:var(--ink);}
   .growth-panel{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0 4px;box-shadow:var(--key-shadow);}
   .growth-head{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-display);font-weight:800;font-size:.95rem;margin-bottom:8px;}
@@ -530,6 +537,14 @@
       <div class="portrait portrait-hero" id="charPortrait"></div>
       <div class="char-card-plate" id="charRank">Rookie Typist</div>
     </div>
+    <div class="companion-showcase" id="companionShowcase" style="display:none;">
+      <div class="companion-showcase-art" id="companionShowcaseArt"></div>
+      <div class="companion-showcase-info">
+        <div class="companion-showcase-label">🐾 Your Companion</div>
+        <div class="companion-showcase-name" id="companionShowcaseName">Chick</div>
+        <div class="companion-showcase-bonus" id="companionShowcaseBonus">+1 HP in battle</div>
+      </div>
+    </div>
     <div class="char-info">
       <div class="char-stats">
         <div><b id="charWorlds">0/12</b><span>Worlds Cleared</span></div>
@@ -594,7 +609,7 @@
     <h3 class="shop-heading">🎁 Rewards Earned</h3>
     <div class="tile-grid" id="rewardsGrid"></div>
 
-    <h3 class="shop-heading">📈 Progress Over Time</h3>
+    <h3 class="shop-heading">📈 Progress by World</h3>
     <p class="hero-sub" id="progChartBlurb">Clear a few stages to start seeing your trend lines here.</p>
     <div class="chart-row" id="progChartRow" style="display:none;">
       <div class="chart-card">
@@ -604,6 +619,21 @@
       <div class="chart-card">
         <div class="chart-title">Best Accuracy per World</div>
         <div id="chartAcc"></div>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">🗓️ Since You Started Playing</h3>
+    <p class="hero-sub" id="dailyChartBlurb">Play on a couple different days and this'll start tracking whether you're getting faster and more accurate over time.</p>
+    <div class="chart-row" id="dailyChartRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">Best WPM per Day Played</div>
+        <div id="chartDailyWpm"></div>
+        <div class="chart-daterange" id="dailyWpmRange"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Best Accuracy per Day Played</div>
+        <div id="chartDailyAcc"></div>
+        <div class="chart-daterange" id="dailyAccRange"></div>
       </div>
     </div>
 
@@ -1132,6 +1162,12 @@ var COMPANIONS=[
   {id:'ghost',name:'Ghost',emoji:'👻',price:140,unlockWorld:60,hpBonus:3},
   {id:'dragon',name:'Dragon',emoji:'🐉',price:220,unlockWorld:90,hpBonus:4}
 ];
+/* Painted companion art -- one image per companion (they don't evolve, so
+   no tiers), at assets/companions/<id>.webp. Same convention as
+   CHARACTER_ART: missing entries just fall back to a large emoji, so
+   companions can be illustrated one at a time. */
+var COMPANION_ART={};
+function companionArtFor(id){ return COMPANION_ART[id]||null; }
 var AURAS=[
   {id:'sunny',name:'Sunny',a:'#ffe066',b:'#ffd43b',price:20},
   {id:'ocean',name:'Ocean',a:'#66d9ef',b:'#4dabf7',price:20,unlockWorld:3},
@@ -1267,6 +1303,31 @@ var DATA=loadData();
 
 function getCurrentPlayer(){ return DATA.players.find(function(p){return p.id===DATA.lastPlayerId;}); }
 function totalStars(p){ var t=0; allSubEntries(p).forEach(function(e){t+=e.stars||0;}); return t; }
+/* Calendar-time progress, separate from per-world progress -- one entry
+   per day actually played (not per attempt, so this can't grow
+   unbounded), tracking that day's best WPM/accuracy. World id already
+   doubles as a rough timeline for campaign progress, but doesn't answer
+   "am I getting faster over the weeks I've been playing" the way a
+   real date-keyed log does. Only starts recording from whenever this
+   shipped -- there's no way to backfill history for existing saves. */
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function recordDailyStat(player,wpm,acc){
+  player.dailyStats=player.dailyStats||{};
+  var key=todayKey();
+  var day=player.dailyStats[key]||{attempts:0,bestWpm:0,bestAcc:0};
+  day.attempts++;
+  day.bestWpm=Math.max(day.bestWpm,wpm);
+  day.bestAcc=Math.max(day.bestAcc,acc);
+  player.dailyStats[key]=day;
+}
+function dailyChartData(p,field){
+  var days=Object.keys(p.dailyStats||{}).sort();
+  return days.map(function(d,i){ return {x:i, y:p.dailyStats[d][field]||0, label:d}; });
+}
+function formatDayLabel(isoDate){
+  var d=new Date(isoDate+'T00:00:00');
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function equippedWeapon(player){
   var owned=player.gearWorlds||[];
@@ -1554,6 +1615,18 @@ function buildArmorSVG(color){
     '<circle cx="50" cy="26" r="7" fill="'+color+'"/>'+
   '</svg>';
 }
+function renderCompanionShowcase(player){
+  var box=el('companionShowcase'); if(!box) return;
+  var comp=player.equippedCompanion ? COMPANIONS.find(function(c){return c.id===player.equippedCompanion;}) : null;
+  if(!comp){ box.style.display='none'; return; }
+  box.style.display='flex';
+  var art=companionArtFor(comp.id);
+  el('companionShowcaseArt').innerHTML = art
+    ? '<img src="'+art+'" alt="'+escapeHtml(comp.name)+'" loading="lazy">'
+    : comp.emoji;
+  el('companionShowcaseName').textContent=comp.name;
+  el('companionShowcaseBonus').textContent='+'+comp.hpBonus+'❤️ Max HP in battle';
+}
 function renderPortrait(container,player,size,charOverride){
   if(!container) return;
   var ch=charOverride||activeCharacter(player);
@@ -1577,7 +1650,7 @@ function renderPortrait(container,player,size,charOverride){
       (size==='hero'?'':'<div class="portrait-aura'+(stage.ring==='boost'?' boost':'')+'"></div>')+
       '<img class="portrait-art" src="'+art+'" alt="'+escapeHtml(stage.title)+'" loading="lazy">'+
       (hat?'<div class="portrait-hat">'+hat.emoji+'</div>':'')+
-      (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
+      (comp&&size!=='hero'?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
     return;
   }
 
@@ -1600,7 +1673,7 @@ function renderPortrait(container,player,size,charOverride){
     armorHtml+
     decorHtml+
     (stage.index===0?'<div class="portrait-cute">✨</div>':'')+
-    (comp?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
+    (comp&&size!=='hero'?'<div class="portrait-companion">'+comp.emoji+'</div>':'');
 }
 
 /* ---------- text generation ---------- */
@@ -1957,6 +2030,7 @@ function renderCharacterScreen(){
   var w=equippedWeapon(p);
   el('charWeapon').textContent=w.emoji+' '+w.name;
   renderPortrait(el('charPortrait'),p,'hero');
+  renderCompanionShowcase(p);
 
   var power=playerCombatPower(p);
   el('powerHp').textContent=5+power.hpBonus;
@@ -2110,6 +2184,7 @@ function renderStatsGrid(p){
   grid.appendChild(statTile('💎',p.flawlessWins||0,'Flawless Wins'));
   grid.appendChild(statTile('⭐',totalStars(p),'Total Stars'));
   grid.appendChild(statTile('👑',bossesCleared(p)+'/'+LEVELS.length,'Bosses Cleared'));
+  grid.appendChild(statTile('🗓️',Object.keys(p.dailyStats||{}).length,'Days Played'));
 }
 /* One point per world that has any attempt, using the best value seen
    across whichever stages (practice/skirmish/boss) were played there --
@@ -2141,7 +2216,8 @@ function buildLineChartSVG(points,color,suffix,yMax){
   function py(y){ return padT + innerH - Math.max(0,Math.min(1,(y-yMin)/(yMax-yMin)))*innerH; }
   var pathD=points.map(function(p,i){ return (i===0?'M':'L')+px(p.x).toFixed(1)+','+py(p.y).toFixed(1); }).join(' ');
   var dots=points.map(function(p){
-    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>World '+p.x+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
+    var label=p.label!=null?p.label:('World '+p.x);
+    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>'+label+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
   }).join('');
   var baseline='<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(padL+innerW)+'" y2="'+(padT+innerH)+'" stroke="var(--border)" stroke-width="1"/>';
   var maxLabel='<text x="0" y="'+(padT+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMax)+'</text>';
@@ -2177,6 +2253,22 @@ function renderProgressScreen(){
     row.style.display='flex';
     el('chartWpm').innerHTML=buildLineChartSVG(wpmPoints,'var(--accent)',' wpm');
     el('chartAcc').innerHTML=buildLineChartSVG(accPoints,'var(--good)','%',100);
+  }
+
+  var dailyWpmPoints=dailyChartData(p,'bestWpm');
+  var dailyAccPoints=dailyChartData(p,'bestAcc');
+  var dblurb=el('dailyChartBlurb'), drow=el('dailyChartRow');
+  if(dailyWpmPoints.length<2){
+    dblurb.style.display='block';
+    drow.style.display='none';
+  } else {
+    dblurb.style.display='none';
+    drow.style.display='flex';
+    el('chartDailyWpm').innerHTML=buildLineChartSVG(dailyWpmPoints,'var(--accent)',' wpm');
+    el('chartDailyAcc').innerHTML=buildLineChartSVG(dailyAccPoints,'var(--good)','%',100);
+    var firstLabel=formatDayLabel(dailyWpmPoints[0].label), lastLabel=formatDayLabel(dailyWpmPoints[dailyWpmPoints.length-1].label);
+    el('dailyWpmRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
+    el('dailyAccRange').innerHTML='<span>'+firstLabel+'</span><span>'+lastLabel+'</span>';
   }
 }
 function renderRoster(){
@@ -2962,6 +3054,7 @@ function finishLevel(kind){
   player.bestCombo=Math.max(player.bestCombo||0,playState.maxCombo||0);
   player.fingerStats=player.fingerStats||emptyFingerStats();
   mergeFingerStats(player.fingerStats,playState.fingerStats);
+  if(playState.startTime) recordDailyStat(player,wpm,acc);
 
   if(playState.combat && kind==='win'){
     player.fightsWon=(player.fightsWon||0)+1;

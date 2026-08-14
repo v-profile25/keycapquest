@@ -14,7 +14,21 @@ module.exports = function (test) {
     // Play several rounds, deliberately fumbling 'a' (left pinky) so a
     // weak finger shows up in both the per-round note and the lifetime report.
     for (let i = 0; i < 6; i++) {
-      const text = await readTypedText(page);
+      let text = await readTypedText(page);
+      if (i === 0) {
+        // The per-round note only counts a finger once it hits 4 attempts.
+        // Random practice text draws from a 10-key pool at ~20 chars/round,
+        // so 'a' averages ~2 occurrences -- not reliably enough on the first
+        // try. Regenerate until this round's text actually has 4+.
+        let tries = 0;
+        while ((text.match(/a/g) || []).length < 4 && tries < 30) {
+          await page.click('#btnRestart');
+          await page.waitForTimeout(120);
+          text = await readTypedText(page);
+          tries++;
+        }
+        assert.ok((text.match(/a/g) || []).length >= 4, 'test setup: could not generate round-0 text with 4+ a\'s after 30 tries');
+      }
       for (const ch of text) {
         if (ch === 'a') await page.keyboard.press('x'); // wrong key on purpose
         await page.keyboard.press(ch === ' ' ? 'Space' : ch);
