@@ -370,6 +370,19 @@
   .finger-acc-chip .facc{font-family:var(--font-mono);font-weight:700;font-size:.85rem;}
   .finger-acc-chip.weakest{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(in srgb, var(--bad) 20%, transparent);}
   .char-weapon{font-size:.9rem;color:var(--ink-soft);}
+
+  /* ---------- progress screen: reward/stat tiles + trend charts ---------- */
+  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px;}
+  .stat-tile{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 10px;text-align:center;box-shadow:var(--key-shadow);}
+  .stat-tile .sti{font-size:1.3rem;}
+  .stat-tile .stv{font-family:var(--font-mono);font-weight:700;font-size:1.05rem;margin-top:3px;}
+  .stat-tile .stl{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-top:2px;}
+  .stat-tile .stn{font-size:.66rem;color:var(--ink-soft);margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);}
+  .stat-tile.complete{border-color:var(--good);}
+  .stat-tile.complete .stv{color:var(--good);}
+  .chart-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
+  .chart-card{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px 8px;box-shadow:var(--key-shadow);}
+  .chart-title{font-family:var(--font-display);font-weight:800;font-size:.78rem;color:var(--ink-soft);margin-bottom:6px;}
   .char-weapon b{color:var(--ink);}
   .growth-panel{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin:22px 0 4px;box-shadow:var(--key-shadow);}
   .growth-head{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-display);font-weight:800;font-size:.95rem;margin-bottom:8px;}
@@ -410,6 +423,7 @@
     <div class="topbar-right">
       <button class="iconbtn" id="btnTutorial" title="How to Type">✋</button>
       <button class="iconbtn" id="btnCharacter" title="Character &amp; Shop">🧢</button>
+      <button class="iconbtn" id="btnProgress" title="Progress">📈</button>
       <button class="iconbtn" id="btnDifficulty" title="Difficulty">⚔️</button>
       <button class="iconbtn" id="btnGear" title="Armory">🎒</button>
       <button class="iconbtn" id="btnChallenge" title="Challenge a Friend">🆚</button>
@@ -544,16 +558,6 @@
     <p class="hero-sub">Recruit more characters and swap your active one anytime — for free. Each has its own element, growth and evolution, so bringing the right one to a boss matters as much as your gear.</p>
     <div class="shop-grid" id="rosterGrid"></div>
 
-    <h3 class="shop-heading">🖐️ Finger Accuracy</h3>
-    <p class="hero-sub" id="fingerReportBlurb">Every keystroke's intended finger gets tallied — this can't see your hands, but a finger that keeps missing its own keys is a real tell. Play a few levels to build up data.</p>
-    <div class="finger-report" id="fingerReport" style="display:none;">
-      <div class="hand-diagram lg" id="fingerAccuracyHands"></div>
-      <div class="finger-acc-grid" id="fingerAccGrid"></div>
-      <div class="btnrow" style="justify-content:center;margin-top:10px;">
-        <button class="btn ghost" id="btnPracticeWeak" style="display:none;font-size:.8rem;"></button>
-      </div>
-    </div>
-
     <h3 class="shop-heading">🍖 Feed &amp; Grow</h3>
     <p class="hero-sub">Feed your active character to grow it from a pup into a full-grown animal, and finally into an ultra mecha warrior.</p>
     <div class="shop-grid" id="shopFood"></div>
@@ -572,6 +576,49 @@
     <div class="shop-grid" id="shopAuras"></div>
     <h3 class="shop-heading">🏷️ Titles</h3>
     <div class="shop-grid" id="shopTitles"></div>
+  </section>
+
+  <!-- PROGRESS SCREEN -->
+  <section class="screen" id="screen-progress">
+    <div class="level-header">
+      <div><span class="eyebrow">Progress</span><h2 id="progName">Name</h2></div>
+      <button class="btn ghost" id="btnProgressBack">← Map</button>
+    </div>
+
+    <div class="char-hero-stage" id="progHeroStage">
+      <div class="portrait portrait-hero" id="progPortrait"></div>
+      <div class="char-card-plate" id="progRank">Rookie Typist</div>
+    </div>
+    <p class="hero-sub" id="progTierLine" style="text-align:center;"></p>
+
+    <h3 class="shop-heading">🎁 Rewards Earned</h3>
+    <div class="tile-grid" id="rewardsGrid"></div>
+
+    <h3 class="shop-heading">📈 Progress Over Time</h3>
+    <p class="hero-sub" id="progChartBlurb">Clear a few stages to start seeing your trend lines here.</p>
+    <div class="chart-row" id="progChartRow" style="display:none;">
+      <div class="chart-card">
+        <div class="chart-title">Best WPM per World</div>
+        <div id="chartWpm"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Best Accuracy per World</div>
+        <div id="chartAcc"></div>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">🖐️ Finger Accuracy</h3>
+    <p class="hero-sub" id="fingerReportBlurb">Every keystroke's intended finger gets tallied — this can't see your hands, but a finger that keeps missing its own keys is a real tell. Play a few levels to build up data.</p>
+    <div class="finger-report" id="fingerReport" style="display:none;">
+      <div class="hand-diagram lg" id="fingerAccuracyHands"></div>
+      <div class="finger-acc-grid" id="fingerAccGrid"></div>
+      <div class="btnrow" style="justify-content:center;margin-top:10px;">
+        <button class="btn ghost" id="btnPracticeWeak" style="display:none;font-size:.8rem;"></button>
+      </div>
+    </div>
+
+    <h3 class="shop-heading">📊 Stats</h3>
+    <div class="tile-grid" id="statsHighlightGrid"></div>
   </section>
 
   <!-- LEVEL SCREEN -->
@@ -1945,7 +1992,6 @@ function renderCharacterScreen(){
   }
 
   renderRoster();
-  renderFingerReport();
   renderShop('hat',HATS,'shopHats');
   renderShop('companion',COMPANIONS,'shopCompanions');
   renderShop('aura',AURAS,'shopAuras');
@@ -1996,6 +2042,141 @@ function renderFingerReport(){
     practiceBtn.onclick=function(){ startFingerDrill(weak); };
   } else {
     practiceBtn.style.display='none';
+  }
+}
+
+/* ================= PROGRESS SCREEN =================
+   A dashboard pulled together from data the game already tracks
+   (subProgress, badges, gearWorlds, fingerStats...) rather than a new
+   history log -- world id doubles as a rough timeline since worlds are
+   cleared in sequence, so "best WPM per world" is a real trend line
+   without needing to store timestamped samples. */
+function goToProgress(){ renderProgressScreen(); showScreen('progress'); }
+
+function statTile(icon,value,label,note,complete){
+  var d=document.createElement('div');
+  d.className='stat-tile'+(complete?' complete':'');
+  d.innerHTML='<div class="sti">'+icon+'</div><div class="stv">'+escapeHtml(String(value))+'</div><div class="stl">'+escapeHtml(label)+'</div>'+
+    (note?('<div class="stn">'+note+'</div>'):'');
+  return d;
+}
+function renderRewardsGrid(p){
+  var grid=el('rewardsGrid'); grid.innerHTML='';
+
+  var badgesOwned=p.badges.length;
+  var nextBadge=BADGES.find(function(b){return p.badges.indexOf(b.id)===-1;});
+  grid.appendChild(statTile('🏅',badgesOwned+'/'+BADGES.length,'Badges',
+    nextBadge?('Next: '+nextBadge.emoji+' '+escapeHtml(nextBadge.name)):'All earned!',badgesOwned===BADGES.length));
+
+  var gearOwned=(p.gearWorlds||[]).length;
+  var nextGear=GEAR.find(function(g){return (p.gearWorlds||[]).indexOf(g.worldId)===-1;});
+  grid.appendChild(statTile('🔫',gearOwned+'/'+GEAR.length,'Gear',
+    nextGear?('Next: '+nextGear.emoji+' World '+nextGear.worldId+' boss'):'All collected!',gearOwned===GEAR.length));
+
+  var avatarsOwned=p.characters.length;
+  var lockedAvatars=Object.keys(AVATAR_UNLOCK_WORLD)
+    .filter(function(a){return !p.characters.some(function(c){return c.avatar===a;});})
+    .sort(function(a,b){return AVATAR_UNLOCK_WORLD[a]-AVATAR_UNLOCK_WORLD[b];});
+  var nextAvatarNote='All recruited!';
+  if(lockedAvatars.length){
+    var na=lockedAvatars[0];
+    nextAvatarNote = isAvatarUnlocked(p,na) ? ('Next: '+na+' — recruit it!') : ('Next: '+na+' at World '+AVATAR_UNLOCK_WORLD[na]);
+  }
+  grid.appendChild(statTile('🐾',avatarsOwned+'/'+AVATARS.length,'Avatars',nextAvatarNote,avatarsOwned===AVATARS.length));
+
+  var titlesOwned=(p.ownedTitles||[]).length;
+  var nextTitle=TITLES.find(function(t){return (p.ownedTitles||[]).indexOf(t.id)===-1;});
+  var nextTitleNote='All earned!';
+  if(nextTitle){
+    if(isCosmeticUnlocked(p,nextTitle)){
+      nextTitleNote='Next: '+nextTitle.emoji+' '+escapeHtml(nextTitle.name)+' — unlocked, buy it!';
+    } else {
+      var tb=BADGES.find(function(b){return b.id===nextTitle.unlockBadge;});
+      nextTitleNote='Next: '+nextTitle.emoji+' '+escapeHtml(nextTitle.name)+(tb?(' ('+escapeHtml(tb.name)+' badge)'):'');
+    }
+  }
+  grid.appendChild(statTile('🏷️',titlesOwned+'/'+TITLES.length,'Titles',nextTitleNote,titlesOwned===TITLES.length));
+}
+function renderStatsGrid(p){
+  var grid=el('statsHighlightGrid'); grid.innerHTML='';
+  var entries=allSubEntries(p);
+  var bestWpm=entries.reduce(function(m,e){return Math.max(m,e.bestWpm||0);},0);
+  var bestAcc=entries.reduce(function(m,e){return Math.max(m,e.bestAcc||0);},0);
+  grid.appendChild(statTile('🏆',bestWpm,'Best WPM Ever'));
+  grid.appendChild(statTile('🎯',bestAcc+'%','Best Accuracy Ever'));
+  grid.appendChild(statTile('🔥',p.bestCombo||0,'Longest Combo'));
+  grid.appendChild(statTile('⌨️',p.totalCharsTyped||0,'Characters Typed'));
+  grid.appendChild(statTile('⚔️',p.fightsWon||0,'Fights Won'));
+  grid.appendChild(statTile('💎',p.flawlessWins||0,'Flawless Wins'));
+  grid.appendChild(statTile('⭐',totalStars(p),'Total Stars'));
+  grid.appendChild(statTile('👑',bossesCleared(p)+'/'+LEVELS.length,'Bosses Cleared'));
+}
+/* One point per world that has any attempt, using the best value seen
+   across whichever stages (practice/skirmish/boss) were played there --
+   world id order stands in for a timeline. */
+function progressChartData(p,field){
+  var worldIds=Object.keys(p.subProgress||{}).map(Number).sort(function(a,b){return a-b;});
+  var points=[];
+  worldIds.forEach(function(w){
+    var stages=p.subProgress[w];
+    var best=0, any=false;
+    STAGE_ORDER.forEach(function(sk){
+      var e=stages[sk]; if(!e) return;
+      any=true; best=Math.max(best,e[field]||0);
+    });
+    if(any) points.push({x:w,y:best});
+  });
+  return points;
+}
+function buildLineChartSVG(points,color,suffix,yMax){
+  var w=280,h=90,padL=26,padR=8,padT=10,padB=18;
+  var innerW=w-padL-padR, innerH=h-padT-padB;
+  var xs=points.map(function(p){return p.x;});
+  var xMin=Math.min.apply(null,xs), xMax=Math.max.apply(null,xs);
+  var xRange=Math.max(1,xMax-xMin);
+  var yMin=0;
+  if(yMax==null) yMax=Math.max.apply(null,points.map(function(p){return p.y;}))*1.15;
+  if(yMax<=yMin) yMax=yMin+1;
+  function px(x){ return padL + (xMax===xMin ? innerW/2 : (x-xMin)/xRange*innerW); }
+  function py(y){ return padT + innerH - Math.max(0,Math.min(1,(y-yMin)/(yMax-yMin)))*innerH; }
+  var pathD=points.map(function(p,i){ return (i===0?'M':'L')+px(p.x).toFixed(1)+','+py(p.y).toFixed(1); }).join(' ');
+  var dots=points.map(function(p){
+    return '<circle cx="'+px(p.x).toFixed(1)+'" cy="'+py(p.y).toFixed(1)+'" r="4" fill="'+color+'"><title>World '+p.x+': '+Math.round(p.y)+(suffix||'')+'</title></circle>';
+  }).join('');
+  var baseline='<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(padL+innerW)+'" y2="'+(padT+innerH)+'" stroke="var(--border)" stroke-width="1"/>';
+  var maxLabel='<text x="0" y="'+(padT+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMax)+'</text>';
+  var minLabel='<text x="0" y="'+(padT+innerH+4)+'" font-size="9" fill="var(--ink-soft)" font-family="var(--font-mono)">'+Math.round(yMin)+'</text>';
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;overflow:visible;display:block;">'+
+    baseline+maxLabel+minLabel+
+    '<path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    dots+
+  '</svg>';
+}
+function renderProgressScreen(){
+  var p=getCurrentPlayer(); if(!p) return;
+  el('progName').textContent=p.name;
+  var rank=rankFor(p);
+  el('progRank').textContent=rank.title;
+  el('progRank').style.background=rank.frame;
+  renderPortrait(el('progPortrait'),p,'hero');
+  var stage=stageFor(p);
+  el('progTierLine').textContent='Tier '+(stage.index+1)+'/10 · '+stage.title;
+
+  renderRewardsGrid(p);
+  renderStatsGrid(p);
+  renderFingerReport();
+
+  var wpmPoints=progressChartData(p,'bestWpm');
+  var accPoints=progressChartData(p,'bestAcc');
+  var blurb=el('progChartBlurb'), row=el('progChartRow');
+  if(wpmPoints.length<2){
+    blurb.style.display='block';
+    row.style.display='none';
+  } else {
+    blurb.style.display='none';
+    row.style.display='flex';
+    el('chartWpm').innerHTML=buildLineChartSVG(wpmPoints,'var(--accent)',' wpm');
+    el('chartAcc').innerHTML=buildLineChartSVG(accPoints,'var(--good)','%',100);
   }
 }
 function renderRoster(){
@@ -2223,6 +2404,8 @@ function buyOrEquip(category,itemId){
 }
 el('btnCharacter').addEventListener('click',goToCharacter);
 el('btnCharBack').addEventListener('click',goToMap);
+el('btnProgress').addEventListener('click',goToProgress);
+el('btnProgressBack').addEventListener('click',goToMap);
 el('btnTutorial').addEventListener('click',goToTutorial);
 el('btnTutorialClose').addEventListener('click',goToMap);
 el('btnTutorialDone').addEventListener('click',goToMap);
@@ -2451,7 +2634,7 @@ function finishFingerDrill(){
   var fingerId=playState.drillFinger;
   var lifetimeAcc=fingerAccuracy(player.fingerStats,fingerId);
 
-  goToCharacter();
+  goToProgress();
 
   var blurb=el('fingerReportBlurb');
   var banner=document.createElement('div');
@@ -2776,6 +2959,7 @@ function finishLevel(kind){
     timesCleared: (prev.timesCleared||0) + (passed?1:0)
   };
   player.totalCharsTyped=(player.totalCharsTyped||0)+playState.correct;
+  player.bestCombo=Math.max(player.bestCombo||0,playState.maxCombo||0);
   player.fingerStats=player.fingerStats||emptyFingerStats();
   mergeFingerStats(player.fingerStats,playState.fingerStats);
 

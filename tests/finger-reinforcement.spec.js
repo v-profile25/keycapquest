@@ -30,7 +30,7 @@ module.exports = function (test) {
     }
 
     await page.click('#btnResultMap');
-    await page.click('#btnCharacter');
+    await page.click('#btnProgress');
     await page.waitForTimeout(250);
 
     const reportDisplay = await page.evaluate(() => getComputedStyle(document.getElementById('fingerReport')).display);
@@ -52,11 +52,11 @@ module.exports = function (test) {
     const hintClass = await page.evaluate(() => document.getElementById('fingerHint').className);
     assert.match(hintClass, /insist/, 'hint should escalate to the insist state after two misses on the same key');
 
-    // Finish the drill and confirm it lands back on the character screen with a summary banner.
+    // Finish the drill and confirm it lands back on the progress screen with a summary banner.
     for (const ch of drillText) await page.keyboard.press(ch === ' ' ? 'Space' : ch);
     await page.waitForTimeout(300);
-    assert.strictEqual(await page.evaluate(() => document.querySelector('.screen.active').id), 'screen-character');
-    const banner = await page.evaluate(() => document.querySelector('#screen-character .reward-banner')?.textContent || '');
+    assert.strictEqual(await page.evaluate(() => document.querySelector('.screen.active').id), 'screen-progress');
+    const banner = await page.evaluate(() => document.querySelector('#screen-progress .reward-banner')?.textContent || '');
     assert.match(banner, /drill complete/i);
 
     // Regression: a normal level after a drill should restore the exit button's label and behavior.
