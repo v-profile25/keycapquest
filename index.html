@@ -934,7 +934,7 @@
 'use strict';
 
 var STORAGE_KEY='keycapQuest.v3';
-var AVATARS=['🦊','🐯','🐼','🦁','🐸','🐵','🦄','🐨','🐶','🐱','🐰','🐻'];
+var AVATARS=['🦊','🐯','🐼','🦁','🐸','🐍','🦄','🐨','🐶','🐱','🐰','🐻'];
 var COLORS=[
   {id:'red',hex:'#ff6b6b'},{id:'orange',hex:'#ffa94d'},{id:'yellow',hex:'#ffd43b'},
   {id:'green',hex:'#51cf66'},{id:'blue',hex:'#4dabf7'},{id:'violet',hex:'#9277ff'}
@@ -1449,10 +1449,10 @@ var AVATAR_THEMES={
     cute:['Dew Frog','Starlight Frog','Crystal Lily Frog','Celestial Frog Spirit','Astral Frog Sprite'],
     mythic:['Storm Frog','Swamp Guardian','Thunder Toad','Frog Champion','Frog Colossus'],
     ferocious:['Feral Frog','Venomstrike Frog','Warbound Toad','Berserker Toad','Toad Warlord']},
-  '🐵':{base:['Baby Monkey','Young Monkey','Nimble Monkey','Playful Monkey','Jungle Monkey'],
-    cute:['Starlight Monkey','Moonvine Monkey','Crystal Monkey Spirit','Celestial Monkey','Astral Monkey Sage'],
-    mythic:['Storm Monkey','Monkey Champion','Monkey Guardian','Monkey Dragonlord','Monkey Sovereign'],
-    ferocious:['Feral Monkey','Ironfist Monkey','Warbound Monkey','Berserker Monkey','Monkey Warlord']},
+  '🐍':{base:['Snake Hatchling','Young Snake','Slither Scout','Coiling Serpent','Jade Serpent'],
+    cute:['Moonvine Snake','Starlight Snake','Crystal Coil Spirit','Celestial Serpent','Astral Serpent Sage'],
+    mythic:['Storm Serpent','Serpent Guardian','Viper Champion','Serpent Dragonlord','Serpent Sovereign'],
+    ferocious:['Feral Snake','Venomfang Serpent','Warbound Viper','Berserker Serpent','Serpent Warlord']},
   '🦄':{base:['Unicorn Foal','Young Unicorn','Sparkle Unicorn','Rainbow Unicorn','Starlight Unicorn'],
     cute:['Comet Unicorn','Aurora Unicorn','Crystal Unicorn Spirit','Celestial Unicorn','Astral Unicorn Empress'],
     mythic:['Storm Unicorn','Unicorn Guardian','Paladin Unicorn','Unicorn Dragonlord','Unicorn Sovereign'],
@@ -1479,14 +1479,14 @@ var AVATAR_THEMES={
     ferocious:['Feral Bear','Ironclaw Bear','Warbound Bear','Berserker Bear','Bear Warlord']}
 };
 var AVATAR_SLUGS={
-  '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐵':'monkey',
+  '🦊':'fox','🐯':'tiger','🐼':'panda','🦁':'lion','🐸':'frog','🐍':'snake',
   '🦄':'unicorn','🐨':'koala','🐶':'dog','🐱':'cat','🐰':'rabbit','🐻':'bear'
 };
 /* Each avatar has its own elemental affinity (2 per element), so
    bringing the right character to a fight matters alongside gear. */
 var AVATAR_ELEMENT={
   '🦊':0,'🦁':0,   // Fire
-  '🐼':1,'🐵':1,   // Nature
+  '🐼':1,'🐍':1,   // Nature
   '🐯':2,'🐶':2,   // Electric
   '🦄':3,'🐨':3,   // Ice
   '🐸':4,'🐻':4,   // Water
@@ -1501,7 +1501,7 @@ var AVATAR_ELEMENT={
    later; this ships with the roster already built. */
 var STARTER_AVATARS=['🐶','🐱','🦊'];
 var AVATAR_UNLOCK_WORLD={
-  '🐰':5,  '🦁':12, '🐵':20, '🐨':30, '🐸':40,
+  '🐰':5,  '🦁':12, '🐍':20, '🐨':30, '🐸':40,
   '🐯':55, '🐼':70, '🐻':85, '🦄':100
 };
 function isAvatarUnlocked(player,avatar){
