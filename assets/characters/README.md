@@ -43,8 +43,8 @@ fox:{
 
 Valid slugs (all 12 avatars): `fox`, `tiger`, `panda`, `lion`, `frog`,
 `snake`, `unicorn`, `koala`, `dog`, `cat`, `rabbit`, `bear`. Currently
-illustrated: `dog`, `fox`, `cat`, all three with all three paths for
-tiers 6-10. The rest fall back to emoji portraits until art is added.
+illustrated: `dog`, `fox`, `cat`, `snake`, all four with all three paths
+for tiers 6-10. The rest fall back to emoji portraits until art is added.
 
 Source images can be generated at any size/format (square, transparent or
 plain/neutral background, no baked-in text or watermarks -- the game
