@@ -44,8 +44,8 @@ fox:{
 Valid slugs (all 12 avatars): `fox`, `tiger`, `panda`, `lion`, `frog`,
 `snake`, `unicorn`, `koala`, `dog`, `cat`, `rabbit`, `bear`. Currently
 illustrated: `dog`, `fox`, `cat`, `snake`, `rabbit`, `lion`, `koala`,
-`frog`, `tiger`, `panda`, all ten with all three paths for tiers 6-10.
-Only `bear` and `unicorn` are still emoji-fallback.
+`frog`, `tiger`, `panda`, `bear`, all eleven with all three paths for
+tiers 6-10. Only `unicorn` is still emoji-fallback.
 
 Source images can be generated at any size/format (square, transparent or
 plain/neutral background, no baked-in text or watermarks -- the game
