@@ -447,6 +447,7 @@
       <button class="iconbtn" id="btnGear" title="Armory">🎒</button>
       <button class="iconbtn" id="btnChallenge" title="Challenge a Friend">🆚</button>
       <button class="iconbtn" id="btnBadges" title="Badges">🏅</button>
+      <button class="iconbtn" id="btnFeedback" title="Send Feedback">💬</button>
       <button class="iconbtn" id="btnSound" title="Toggle sound">🔊</button>
       <div class="player-pill" id="playerPill">
         <div class="portrait" id="pillAv"></div>
@@ -886,6 +887,37 @@
     <div class="btnrow" style="justify-content:center;margin-top:10px;">
       <button class="btn" id="btnDoImport">⬇️ Import</button>
       <button class="btn ghost" id="btnCloseImport2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK OVERLAY -->
+<div class="overlay" id="overlayFeedback">
+  <div class="sheet" style="max-width:480px;position:relative;">
+    <button class="close-x" id="btnCloseFeedback">✕</button>
+    <span class="eyebrow">Get In Touch</span>
+    <h2>Send Feedback</h2>
+    <p style="font-size:.85rem;">Got an idea, found a bug, or just want to say hi? This opens your email app with your message ready to go.</p>
+    <div class="field">
+      <label for="feedbackType">What's this about?</label>
+      <select id="feedbackType" style="width:100%;padding:11px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:1rem;font-family:var(--font-body);">
+        <option value="Idea">💡 Idea</option>
+        <option value="Feedback">💬 Feedback</option>
+        <option value="Problem">🐛 Problem</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="feedbackName">Your name (optional)</label>
+      <input type="text" id="feedbackName" maxlength="40" placeholder="So we know who to thank..." style="width:100%;padding:11px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:1rem;font-family:var(--font-body);">
+    </div>
+    <div class="field">
+      <label for="feedbackMessage">Message</label>
+      <textarea id="feedbackMessage" placeholder="Type your idea, feedback, or problem here..." style="width:100%;height:110px;padding:11px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);font-size:.9rem;font-family:var(--font-body);resize:vertical;"></textarea>
+    </div>
+    <p id="feedbackStatus" style="font-size:.78rem;min-height:1.2em;margin-top:4px;"></p>
+    <div class="btnrow" style="justify-content:center;margin-top:10px;">
+      <button class="btn" id="btnSendFeedback">📧 Open Email &amp; Send</button>
+      <button class="btn ghost" id="btnCloseFeedback2">Cancel</button>
     </div>
   </div>
 </div>
@@ -2058,6 +2090,37 @@ el('btnDoImport').addEventListener('click',function(){
   saveData();
   el('overlayImportSave').classList.remove('active');
   renderProfiles();
+});
+
+/* ================= FEEDBACK =================
+   No backend here either -- this just builds a mailto: link so the
+   visitor's own email app sends it, straight to the dev's inbox. */
+var FEEDBACK_EMAIL='v-automated@outlook.com';
+el('btnFeedback').addEventListener('click',function(){
+  el('feedbackType').value='Feedback';
+  el('feedbackName').value='';
+  el('feedbackMessage').value='';
+  el('feedbackStatus').textContent='';
+  el('overlayFeedback').classList.add('active');
+});
+el('btnCloseFeedback').addEventListener('click',function(){ el('overlayFeedback').classList.remove('active'); });
+el('btnCloseFeedback2').addEventListener('click',function(){ el('overlayFeedback').classList.remove('active'); });
+el('btnSendFeedback').addEventListener('click',function(){
+  var status=el('feedbackStatus');
+  var type=el('feedbackType').value;
+  var name=el('feedbackName').value.trim();
+  var message=el('feedbackMessage').value.trim();
+  if(!message){ status.style.color='var(--bad)'; status.textContent='Type a message first.'; return; }
+  var subject='Keycap Quest '+type+(name?' from '+name:'');
+  var bodyLines=[];
+  if(name) bodyLines.push('From: '+name);
+  bodyLines.push('Type: '+type);
+  bodyLines.push('');
+  bodyLines.push(message);
+  var mailto='mailto:'+FEEDBACK_EMAIL+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(bodyLines.join('\n'));
+  window.location.href=mailto;
+  status.style.color='var(--good)';
+  status.textContent='Opening your email app...';
 });
 
 /* ================= MAP SCREEN ================= */
