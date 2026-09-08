@@ -2327,7 +2327,7 @@ function renderCharacterScreen(){
   el('powerResist').textContent=Math.round(power.mistakeResist*100)+'%';
 
   var stage=stageFor(p);
-  var g=p.growth||0;
+  var g=activeCharacter(p).growth||0;
   if(stage.pendingChoice){
     el('growthStageTitle').textContent='Tier 5/10 · '+stage.title;
     el('growthMeterText').textContent='Ready to evolve!';
