@@ -102,6 +102,7 @@
   .topbar-right{display:flex;align-items:center;gap:8px;}
   .iconbtn{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.05rem;cursor:pointer;box-shadow:var(--key-shadow);}
   .iconbtn:active{transform:translateY(2px);box-shadow:var(--key-shadow-active);}
+  .iconbtn.locked{opacity:.4;cursor:default;filter:grayscale(.6);}
   .player-pill{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:5px 12px 5px 5px;box-shadow:var(--key-shadow);cursor:pointer;}
   .player-pill .stars-total{font-family:var(--font-mono);font-weight:700;font-size:.85rem;color:var(--f-ring);font-variant-numeric:tabular-nums;}
 
@@ -446,6 +447,7 @@
       <button class="iconbtn" id="btnDifficulty" title="Difficulty">⚔️</button>
       <button class="iconbtn" id="btnGear" title="Armory">🎒</button>
       <button class="iconbtn" id="btnChallenge" title="Challenge a Friend">🆚</button>
+      <button class="iconbtn" id="btnPoppins" title="Bonus: Mary Poppins">☂️</button>
       <button class="iconbtn" id="btnBadges" title="Badges">🏅</button>
       <button class="iconbtn" id="btnFeedback" title="Send Feedback">💬</button>
       <button class="iconbtn" id="btnSound" title="Toggle sound">🔊</button>
@@ -538,6 +540,17 @@
     <div class="equip-line">Equipped weapon: <b id="wdWeapon">👊 Bare Hands</b></div>
     <div class="equip-line">Difficulty: <b id="wdDifficulty">Normal</b> <button class="btn ghost" id="btnWdDifficulty" style="padding:4px 10px;font-size:.75rem;margin-left:6px;">Change</button></div>
     <div class="stage-row" id="stageRow"></div>
+  </section>
+
+  <!-- MARY POPPINS BONUS ROUND -->
+  <section class="screen" id="screen-poppins">
+    <div class="level-header">
+      <div><span class="eyebrow">Bonus Round</span><h2>☂️ Mary Poppins</h2></div>
+      <button class="btn ghost" id="btnBackFromPoppins">← Full Map</button>
+    </div>
+    <p class="hero-sub">One impossible word, three tries at it: warm up, prove you can repeat it, then see if you can out-type the world's most practically perfect nanny.</p>
+    <div class="equip-line">The word: <b style="font-family:var(--font-mono);">Supercalifragilisticexpialidocious</b></div>
+    <div class="stage-row" id="poppinsStageRow"></div>
   </section>
 
   <!-- CHARACTER / SHOP SCREEN -->
@@ -1062,6 +1075,22 @@ var LEVELS=[
   {id:12,title:'Boss Challenge',emoji:'👑',type:'sentences',bank:['The 3 dogs ran quickly to the old, red barn!','In 2024, we visited 12 amazing places.','Hurry up, she shouted with a big smile!','My favorite number is 7, but yours might be 3.','We packed 5 bags for our trip to the lake.','He scored 100 points in the final round!'],targetWpm:25,blurb:'Capitals, numbers, and punctuation — all at once. Good luck!',miniBoss:{name:'Royal Guard',emoji:'💂'},boss:{name:'The Keyboard King',emoji:'🐲'}}
 ];
 
+/* ---------- Bonus Round: Mary Poppins ----------
+   A joke/bonus challenge, deliberately NOT one of the 100 campaign
+   worlds -- it never goes in LEVELS (that array's length and 9-region
+   grouping are load-bearing elsewhere, see world-map-regions.spec.js),
+   and its progress lives in its own player.poppins field rather than
+   subProgress, so a non-numeric world id can't corrupt the progress
+   chart's Object.keys(...).map(Number) or the campaign's stats/badges. */
+var POPPINS_WORD='Supercalifragilisticexpialidocious';
+var POPPINS_LEVEL={
+  id:'poppins', title:'Supercalifragilisticexpialidocious', emoji:'☂️', type:'poppins',
+  bank:[POPPINS_WORD], targetWpm:14,
+  blurb:"One impossible word, three tries at it.",
+  miniBoss:{name:'Gusty Wind',emoji:'💨'},
+  boss:{name:'Mary Poppins',emoji:'☂️'}
+};
+
 /* ---------- worlds 13-100: a generated campaign ----------
    Worlds 1-12 are the hand-built intro arc that teaches every key.
    From here on, 8 arcs of 11 worlds each escalate from longer words,
@@ -1375,7 +1404,8 @@ var BADGES=[
   {id:'speed_racer',name:'Speed Racer',emoji:'🚀',desc:'Hit 25 WPM in any stage',check:function(p){return allSubEntries(p).some(function(e){return e.bestWpm>=25;});}},
   {id:'perfectionist',name:'Perfectionist',emoji:'🎯',desc:'Get 100% accuracy in any stage',check:function(p){return allSubEntries(p).some(function(e){return e.bestAcc>=100;});}},
   {id:'marathon',name:'Marathon Typer',emoji:'🏃',desc:'Type 1,500 characters total',check:function(p){return (p.totalCharsTyped||0)>=1500;}},
-  {id:'champion',name:'Keyboard Champion',emoji:'👑',desc:'Earn 3 stars defeating every world boss',check:function(p){return LEVELS.every(function(l){var s=getSub(p,l.id,'boss');return !!(s&&s.stars>=3);});}}
+  {id:'champion',name:'Keyboard Champion',emoji:'👑',desc:'Earn 3 stars defeating every world boss',check:function(p){return LEVELS.every(function(l){var s=getSub(p,l.id,'boss');return !!(s&&s.stars>=3);});}},
+  {id:'practically_perfect',name:'Practically Perfect',emoji:'☂️',desc:'Defeat Mary Poppins in the bonus round',check:function(p){return !!(p.poppins && p.poppins.boss && p.poppins.boss.passed);}}
 ];
 
 /* ---------- storage ---------- */
@@ -1853,6 +1883,7 @@ function subParams(level,subKind){
   if(level.type==='drill') return {n: subKind==='practice'?8:subKind==='skirmish'?10:14};
   if(level.type==='words') return {n: subKind==='practice'?6:subKind==='skirmish'?8:12};
   if(level.type==='story') return {n: subKind==='boss'?2:1};
+  if(level.type==='poppins') return {n: subKind==='practice'?1:subKind==='skirmish'?2:3};
   return {n: subKind==='practice'?2:subKind==='skirmish'?3:4};
 }
 function subTargetWpm(level,subKind){
@@ -1875,6 +1906,9 @@ function genText(level,subKind){
     var words=[]; var last='';
     for(var k=0;k<p.n;k++){ var w; do{ w=level.bank[Math.floor(Math.random()*level.bank.length)]; }while(w===last && level.bank.length>1); words.push(w); last=w; }
     return words.join(' ');
+  }
+  if(level.type==='poppins'){
+    var reps=[]; for(var r=0;r<p.n;r++){ reps.push(level.bank[0]); } return reps.join(' ');
   }
   var bank=shuffle(level.bank); var count=Math.min(p.n,bank.length); return bank.slice(0,count).join(' ');
 }
@@ -1945,7 +1979,11 @@ function refreshTopbar(){
   var diff=currentDifficulty(p);
   el('btnDifficulty').textContent=diff.emoji;
   el('btnDifficulty').title='Difficulty: '+diff.name;
+  var pu=poppinsUnlocked(p);
+  el('btnPoppins').classList.toggle('locked',!pu);
+  el('btnPoppins').title = pu ? 'Bonus: Mary Poppins' : "Beat World 12's boss to unlock this bonus round!";
 }
+function poppinsUnlocked(player){ var s=getSub(player,12,'boss'); return !!(s&&s.passed); }
 
 /* ================= PROFILE SCREEN ================= */
 var pickedAvatar=STARTER_AVATARS[0], pickedColor=COLORS[3];
@@ -2221,6 +2259,44 @@ function renderStageRow(worldId){
     row.appendChild(card);
   });
 }
+
+/* ================= MARY POPPINS BONUS ROUND ================= */
+function isPoppinsStageUnlocked(player,subKind){
+  var pop=player.poppins||{};
+  if(subKind==='practice') return true;
+  if(subKind==='skirmish') return !!(pop.practice && pop.practice.passed);
+  return !!(pop.skirmish && pop.skirmish.passed);
+}
+function goToPoppinsHub(){
+  if(!poppinsUnlocked(getCurrentPlayer())) return;
+  renderPoppinsStageRow();
+  showScreen('poppins');
+}
+function renderPoppinsStageRow(){
+  var row=el('poppinsStageRow'); row.innerHTML='';
+  var player=getCurrentPlayer();
+  var pop=player.poppins||{};
+  STAGE_ORDER.forEach(function(subKind){
+    var unlocked=isPoppinsStageUnlocked(player,subKind);
+    var entry=pop[subKind];
+    var meta=STAGE_META[subKind];
+    var enemy = subKind==='skirmish'?POPPINS_LEVEL.miniBoss:(subKind==='boss'?POPPINS_LEVEL.boss:null);
+    var card=document.createElement('div'); card.className='card stage-card'+(unlocked?'':' locked');
+    if(!unlocked){
+      card.innerHTML='<div class="sicon">🔒</div><div class="sname">'+meta.label+'</div>';
+    } else {
+      var starStr=''; var st=entry?entry.stars:0;
+      for(var i=0;i<3;i++) starStr+= i<st?'★':'☆';
+      card.innerHTML='<div class="sicon">'+meta.icon+'</div><div class="sname">'+meta.label+'</div>'+
+        '<div class="senemy">'+(enemy?('vs '+enemy.emoji+' '+escapeHtml(enemy.name)):'Practice round')+'</div>'+
+        '<div class="sstars">'+starStr+'</div>';
+      card.addEventListener('click',function(){ startPoppinsLevel(subKind); });
+    }
+    row.appendChild(card);
+  });
+}
+el('btnPoppins').addEventListener('click', goToPoppinsHub);
+el('btnBackFromPoppins').addEventListener('click', goToMap);
 el('btnBackMap').addEventListener('click',goToMap);
 
 /* ================= CHARACTER / SHOP SCREEN ================= */
@@ -2951,6 +3027,123 @@ function finishFingerDrill(){
   blurb.parentNode.insertBefore(banner,blurb);
   setTimeout(function(){ banner.remove(); },6000);
 }
+/* The bonus round reuses the same arena/typing engine as a real level
+   (renderArena, onKeydown, the tug meter...) but is deliberately NOT a
+   LEVELS entry -- see the POPPINS_LEVEL comment above. worldMult is
+   pinned to worldPowerMult(12) rather than computed from playState.worldId
+   (which is the string 'poppins', not a world number) so enemy toughness
+   here tracks "just past the intro arc" instead of going NaN. */
+function startPoppinsLevel(subKind){
+  if(playState){ clearInterval(playState.timerHandle); clearInterval(playState.tugInterval); }
+  var level=POPPINS_LEVEL;
+  var text=genText(level,subKind);
+  var combat = subKind!=='practice';
+  var isBoss = subKind==='boss';
+  var player=getCurrentPlayer();
+  var weapon=equippedWeapon(player);
+  var diff=currentDifficulty(player);
+  var enemyDef = subKind==='skirmish'?level.miniBoss:(subKind==='boss'?level.boss:null);
+  var power=playerCombatPower(player);
+  var worldMult=combat?worldPowerMult(12):1;
+  var maxHp=(isBoss?7:5)+power.hpBonus;
+
+  playState={
+    worldId:'poppins', subKind:subKind, level:level, enemyDef:enemyDef, combat:combat, diff:diff,
+    text:text, idx:0, correct:0, incorrect:0, combo:0, maxCombo:0,
+    startTime:null, timerHandle:null, tugInterval:null, spans:[],
+    playerHp:(combat&&!isBoss)?maxHp:0, playerMaxHp:(combat&&!isBoss)?maxHp:0,
+    enemyHp:(combat&&!isBoss)?Math.round(text.length*worldMult):0, enemyMaxHp:(combat&&!isBoss)?Math.round(text.length*worldMult):0,
+    tug:50,
+    weaponEmoji:weapon.emoji,
+    offenseMult:1, defenseMult:1,
+    power:power, worldMult:worldMult,
+    fingerStats:emptyFingerStats(), missStreak:0,
+    usedConsumables:[], poisonMult:1, reviveAvailable:false, revivedUsed:false,
+    targetWpm:effectiveTargetWpm(level,subKind,player)
+  };
+
+  el('levelEyebrow').textContent='Bonus Round · '+STAGE_META[subKind].label;
+  el('levelTitle').textContent = combat ? ('The Impossible Word — '+enemyDef.name) : 'The Impossible Word';
+  el('fingerHint').textContent='Press any key to begin';
+  el('fingerHint').style.setProperty('--hint-color','var(--ink-soft)');
+  el('btnExitLevel').textContent='← Stages';
+
+  renderArena();
+  renderTypedText();
+  renderKeyboard();
+  renderHandDiagram(el('levelHands'),null);
+  updateHud();
+  updateArena();
+  el('progressFill').style.width='0%';
+  showScreen('level');
+  document.addEventListener('keydown',onKeydown);
+  document.addEventListener('keyup',onKeyup);
+  updateNextHint();
+}
+function finishPoppinsLevel(kind){
+  clearInterval(playState.timerHandle);
+  clearInterval(playState.tugInterval);
+  document.removeEventListener('keydown',onKeydown);
+  document.removeEventListener('keyup',onKeyup);
+
+  var elapsedSec = playState.startTime ? (performance.now()-playState.startTime)/1000 : 0;
+  var minutes=Math.max(elapsedSec/60,1/60);
+  var wpm = playState.startTime ? Math.round((playState.correct/5)/minutes) : 0;
+  var total=playState.correct+playState.incorrect;
+  var acc = total>0 ? Math.round(playState.correct/total*100) : 100;
+
+  var player=getCurrentPlayer();
+  player.poppins=player.poppins||{};
+  var prev = player.poppins[playState.subKind] || {stars:0,bestWpm:0,bestAcc:0,attempts:0,passed:false,timesCleared:0};
+
+  var passed, stars;
+  if(kind==='loss'){ passed=false; stars=0; }
+  else if(kind==='win'){ passed=true; stars=computeStars(playState.targetWpm,wpm,acc); }
+  else { stars=computeStars(playState.targetWpm,wpm,acc); passed = stars>=1; }
+
+  var clearMult=goldMultiplier(prev.timesCleared);
+  var rewardMult=playState.diff.rewardMult;
+
+  player.poppins[playState.subKind] = {
+    stars: Math.max(prev.stars, stars), bestWpm: Math.max(prev.bestWpm, wpm), bestAcc: Math.max(prev.bestAcc, acc),
+    attempts: prev.attempts+1, passed: prev.passed || passed,
+    timesCleared: (prev.timesCleared||0) + (passed?1:0)
+  };
+  player.totalCharsTyped=(player.totalCharsTyped||0)+playState.correct;
+  player.bestCombo=Math.max(player.bestCombo||0,playState.maxCombo||0);
+  player.fingerStats=player.fingerStats||emptyFingerStats();
+  mergeFingerStats(player.fingerStats,playState.fingerStats);
+  if(playState.startTime) recordDailyStat(player,wpm,acc);
+
+  if(playState.combat && kind==='win'){
+    player.fightsWon=(player.fightsWon||0)+1;
+    if(playState.incorrect===0) player.flawlessWins=(player.flawlessWins||0)+1;
+  }
+
+  var goldEarned=0;
+  if(kind==='win'){
+    var base = playState.subKind==='boss'?40:15;
+    goldEarned = Math.max(1, Math.round(base * clearMult * rewardMult));
+  } else if(kind==='complete' && passed){
+    goldEarned = Math.max(1, Math.round(5 * clearMult * rewardMult));
+  }
+  player.gold=(player.gold||0)+goldEarned;
+
+  var gemsEarned=0;
+  if(playState.subKind==='boss' && kind==='win'){
+    gemsEarned=Math.max(1,Math.round(5*clearMult*rewardMult));
+    player.gems=(player.gems||0)+gemsEarned;
+  }
+
+  var newBadges=[];
+  BADGES.forEach(function(b){
+    if(player.badges.indexOf(b.id)===-1 && b.check(player)){ player.badges.push(b.id); newBadges.push(b); }
+  });
+  saveData();
+
+  pendingNext = passed ? getNextStage(playState.worldId,playState.subKind) : null;
+  showResult(kind,stars,wpm,acc,Math.round(elapsedSec),passed,newBadges,null,goldEarned,clearMult,gemsEarned,null);
+}
 function renderArena(){
   var arena=el('arena');
   if(!playState.combat){
@@ -3237,6 +3430,7 @@ function getNextStage(worldId,subKind){
 var pendingNext=null;
 function finishLevel(kind){
   if(playState.subKind==='fingerdrill'){ finishFingerDrill(); return; }
+  if(playState.worldId==='poppins'){ finishPoppinsLevel(kind); return; }
   clearInterval(playState.timerHandle);
   clearInterval(playState.tugInterval);
   document.removeEventListener('keydown',onKeydown);
@@ -3318,7 +3512,7 @@ function finishLevel(kind){
 /* ================= RESULT ================= */
 function showResult(kind,stars,wpm,acc,timeSec,passed,newBadges,newGear,goldEarned,clearMult,gemsEarned,newAvatar){
   var enemyName = playState.enemyDef?playState.enemyDef.name:null;
-  el('resultEyebrow').textContent='World '+playState.worldId+' · '+STAGE_META[playState.subKind].label;
+  el('resultEyebrow').textContent=(typeof playState.worldId==='number'?('World '+playState.worldId):'Bonus Round')+' · '+STAGE_META[playState.subKind].label;
   var title;
   if(kind==='loss') title = enemyName+' got the best of you!';
   else if(kind==='win') title = stars===3 ? ('Flawless! '+enemyName+' defeated!') : (enemyName+' defeated!');
@@ -3403,17 +3597,32 @@ function burstConfetti(layerId){
 }
 function getCss(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-el('btnRetryLevel').addEventListener('click',function(){ el('overlayResult').classList.remove('active'); startLevel(playState.worldId, playState.subKind); });
-el('btnNextLevel').addEventListener('click',function(){ el('overlayResult').classList.remove('active'); if(pendingNext) startLevel(pendingNext.worldId, pendingNext.sub); });
-el('btnResultMap').addEventListener('click',function(){ el('overlayResult').classList.remove('active'); goToWorldDetail(playState.worldId); });
+el('btnRetryLevel').addEventListener('click',function(){
+  el('overlayResult').classList.remove('active');
+  if(playState.worldId==='poppins'){ startPoppinsLevel(playState.subKind); return; }
+  startLevel(playState.worldId, playState.subKind);
+});
+el('btnNextLevel').addEventListener('click',function(){
+  el('overlayResult').classList.remove('active');
+  if(!pendingNext) return;
+  if(pendingNext.worldId==='poppins'){ startPoppinsLevel(pendingNext.sub); return; }
+  startLevel(pendingNext.worldId, pendingNext.sub);
+});
+el('btnResultMap').addEventListener('click',function(){
+  el('overlayResult').classList.remove('active');
+  if(playState.worldId==='poppins'){ goToPoppinsHub(); return; }
+  goToWorldDetail(playState.worldId);
+});
 el('btnRestart').addEventListener('click',function(){
   if(playState.subKind==='fingerdrill'){ startFingerDrill(playState.drillFinger); return; }
+  if(playState.worldId==='poppins'){ startPoppinsLevel(playState.subKind); return; }
   startLevel(playState.worldId, playState.subKind);
 });
 el('btnExitLevel').addEventListener('click',function(){
   document.removeEventListener('keydown',onKeydown); document.removeEventListener('keyup',onKeyup);
   clearInterval(playState.timerHandle); clearInterval(playState.tugInterval);
   if(playState.subKind==='fingerdrill'){ el('btnExitLevel').textContent='← Stages'; goToCharacter(); return; }
+  if(playState.worldId==='poppins'){ goToPoppinsHub(); return; }
   goToWorldDetail(playState.worldId);
 });
 
