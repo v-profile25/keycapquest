@@ -1147,10 +1147,21 @@ function regionForWorld(id){
 }
 var ARC_ADJ=['Storm','Crimson','Shadow','Golden','Frost','Ember','Iron','Mystic','Silver','Thorn','Void','Radiant'];
 var ARC_CREATURE=[{n:'Griffin',e:'🦅'},{n:'Wyrm',e:'🐍'},{n:'Golem',e:'🗿'},{n:'Phoenix',e:'🔥'},{n:'Kraken',e:'🐙'},{n:'Sphinx',e:'🦁'},{n:'Yeti',e:'❄️'},{n:'Basilisk',e:'🐲'},{n:'Chimera',e:'🦄'},{n:'Wraith',e:'👻'},{n:'Colossus',e:'🗿'},{n:'Direwolf',e:'🐺'}];
+/* One portrait per creature species, reused across every adjective variant
+   (procedural enemies are named "<adjective> <species>", but there's no
+   art for each of the 144 combinations -- just the 12 base species). Carried
+   directly on the enemy object since these enemies have no fixed unique
+   name to look up in ENEMY_ART. */
+var CREATURE_ART={
+  Griffin:'assets/enemies/griffin.webp', Wyrm:'assets/enemies/wyrm.webp', Golem:'assets/enemies/golem.webp',
+  Phoenix:'assets/enemies/phoenix.webp', Kraken:'assets/enemies/kraken.webp', Sphinx:'assets/enemies/sphinx.webp',
+  Yeti:'assets/enemies/yeti.webp', Basilisk:'assets/enemies/basilisk.webp', Chimera:'assets/enemies/chimera.webp',
+  Wraith:'assets/enemies/wraith.webp', Colossus:'assets/enemies/colossus.webp', Direwolf:'assets/enemies/direwolf.webp'
+};
 function proceduralEnemy(seed){
   var adj=ARC_ADJ[seed%ARC_ADJ.length];
   var creature=ARC_CREATURE[Math.floor(seed/ARC_ADJ.length)%ARC_CREATURE.length];
-  return {name:adj+' '+creature.n,emoji:creature.e};
+  return {name:adj+' '+creature.n,emoji:creature.e,art:CREATURE_ART[creature.n]||null};
 }
 function campaignTargetWpm(id){
   var frac=Math.pow((id-12)/88,0.7);
@@ -1757,26 +1768,43 @@ var CHARACTER_ART={
   }
 };
 
-/* Boss/mini-boss portraits for the 12 hand-built intro-arc worlds, keyed
-   by enemy name (unique across those 12 levels). Worlds 13-100 use
-   procedurally-combined enemies (see proceduralEnemy) with no fixed
-   identity to illustrate, so they stay emoji-only. A missing entry just
-   falls back to the emoji, same convention as CHARACTER_ART. */
+/* Boss/mini-boss portraits for the 12 hand-built intro-arc worlds, plus
+   the campaign's true final boss and the Mary Poppins bonus round's two
+   enemies -- all keyed by enemy name, which is unique across this fixed
+   set. Worlds 13-100's procedurally-combined enemies (see
+   proceduralEnemy) carry their own .art field instead (see CREATURE_ART
+   above), since "<adjective> <species>" names aren't unique. A missing
+   entry just falls back to the emoji, same convention as CHARACTER_ART. */
 var ENEMY_ART={
   'Sergeant Steady':'assets/enemies/sergeant_steady.webp',
+  'Wobble Bot':'assets/enemies/wobble_bot.webp',
   'Vocab Viper':'assets/enemies/vocab_viper.webp',
+  'Word Worm':'assets/enemies/word_worm.webp',
   'Cloud Golem':'assets/enemies/cloud_golem.webp',
+  'Sky Sprite':'assets/enemies/sky_sprite.webp',
   'Riddle Eagle':'assets/enemies/riddle_eagle.webp',
+  'Grammar Gremlin':'assets/enemies/grammar_gremlin.webp',
   'Cave Troll':'assets/enemies/cave_troll.webp',
+  'Shadow Bat':'assets/enemies/shadow_bat.webp',
   'Zebra Zealot':'assets/enemies/zebra_zealot.webp',
+  'Zap Rat':'assets/enemies/zap_rat.webp',
   'Count-Bot 3000':'assets/enemies/countbot_3000.webp',
+  'Glitch Byte':'assets/enemies/glitch_byte.webp',
   'Grand Librarian':'assets/enemies/grand_librarian.webp',
+  'Page Sprite':'assets/enemies/page_sprite.webp',
   'Story Spider':'assets/enemies/story_spider.webp',
+  'Comma Snail':'assets/enemies/comma_snail.webp',
   'Exclaim Ogre':'assets/enemies/exclaim_ogre.webp',
+  'Question Quokka':'assets/enemies/question_quokka.webp',
   'Velocity Raptor':'assets/enemies/velocity_raptor.webp',
-  'The Keyboard King':'assets/enemies/keyboard_king.webp'
+  'Turbo Hare':'assets/enemies/turbo_hare.webp',
+  'The Keyboard King':'assets/enemies/keyboard_king.webp',
+  'Royal Guard':'assets/enemies/royal_guard.webp',
+  'The Keymaster':'assets/enemies/keymaster.webp',
+  'Mary Poppins':'assets/enemies/poppins_nanny.webp',
+  'Gusty Wind':'assets/enemies/gusty_wind.webp'
 };
-function enemyArtFor(enemyDef){ return (enemyDef && ENEMY_ART[enemyDef.name]) || null; }
+function enemyArtFor(enemyDef){ return (enemyDef && (enemyDef.art || ENEMY_ART[enemyDef.name])) || null; }
 function artForCharacter(ch,tierIndex){
   var slug=AVATAR_SLUGS[ch.avatar];
   var forAvatar=slug && CHARACTER_ART[slug];

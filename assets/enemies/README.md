@@ -1,24 +1,36 @@
 # Enemy art
 
-Painted portraits for the boss/mini-boss enemies of the 12 hand-built
-intro-arc worlds (World 1 through World 12). Each file is named after its
-enemy's identifier used in the `ENEMY_ART` manifest in `index.html`:
+Painted portraits for every fixed-identity enemy in the game: the 12
+bosses and 12 mini-bosses of the hand-built intro arc (World 1-12), the
+campaign's true final boss (The Keymaster, World 100), the 12 creature
+species reused across worlds 13-100, and the two Mary Poppins bonus-round
+enemies. Each file is named after its identifier:
 
 ```
 assets/enemies/sergeant_steady.webp
-assets/enemies/vocab_viper.webp
+assets/enemies/wobble_bot.webp
+assets/enemies/griffin.webp
+assets/enemies/keymaster.webp
+assets/enemies/poppins_nanny.webp
 ...
 ```
 
-`ENEMY_ART` maps each enemy's exact in-game `name` (e.g. `"Sergeant
-Steady"`) to its art file. A missing entry just falls back to the enemy's
-emoji, same convention as `assets/characters/`.
+Two lookup paths land on these files, both in `index.html`:
 
-Worlds 13-100 use `proceduralEnemy()` to combine an adjective (`ARC_ADJ`)
-with a creature species (`ARC_CREATURE`) -- there's no fixed identity to
-illustrate there (144 possible combinations from just 12 species), so
-those stay emoji-only. If that ever gets illustrated, the sensible target
-is the 12 base creature species, not every adjective combination.
+- `ENEMY_ART` maps a fixed enemy's exact in-game `name` (e.g. `"Sergeant
+  Steady"`, `"The Keymaster"`) to its art file. This covers every enemy
+  with a unique, unchanging name.
+- Worlds 13-100's enemies are procedurally combined by `proceduralEnemy()`
+  -- an adjective (`ARC_ADJ`) plus a creature species (`ARC_CREATURE`), so
+  the *name* isn't unique (e.g. many different worlds produce a "Storm
+  Griffin"). Those enemies carry their art directly on an `.art` field
+  instead, pointing at one portrait per species (`CREATURE_ART`) reused
+  across every adjective variant -- there's no separate art for each of
+  the 144 adjective x species combinations, just the 12 base species.
+
+`enemyArtFor(enemyDef)` checks `.art` first, then falls back to the
+`ENEMY_ART` name lookup. Either way, a missing entry just falls back to
+the enemy's emoji, same convention as `assets/characters/`.
 
 Source images can be generated at any size (square, transparent or plain
 background, no baked-in text -- the game overlays the enemy's name
