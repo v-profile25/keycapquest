@@ -31,7 +31,7 @@ module.exports = function (test) {
     assert.strictEqual(await page.evaluate(() => document.querySelector('.screen.active').id), 'screen-progress');
 
     const rewardsText = await page.evaluate(() => Array.from(document.querySelectorAll('#rewardsGrid .stat-tile')).map((t) => t.textContent));
-    assert.match(rewardsText[0], /2\/8.*Badges.*Home Row Hero/s, 'badges tile should count owned and name the next one');
+    assert.match(rewardsText[0], /2\/9.*Badges.*Home Row Hero/s, 'badges tile should count owned and name the next one');
     assert.match(rewardsText[1], /3\/12.*Gear.*World 4 boss/s, 'gear tile should count owned and name the next boss');
     assert.match(rewardsText[2], /1\/12.*Avatars/s, 'avatars tile should count recruited characters');
     assert.match(rewardsText[3], /1\/8.*Titles/s, 'titles tile should count owned titles');
