@@ -558,7 +558,7 @@
   <!-- CHARACTER / SHOP SCREEN -->
   <section class="screen" id="screen-character">
     <div class="level-header">
-      <div><span class="eyebrow">Character</span><h2 id="charTitle">Name</h2><div class="char-weapon" id="charEquippedTitle" style="display:none;"></div></div>
+      <div><span class="eyebrow">Character</span><h2><span id="charTitle">Name</span><button class="btn ghost" id="btnRenamePlayer" title="Change name" style="font-size:.7rem;padding:3px 9px;margin-left:8px;vertical-align:middle;">✏️ Rename</button></h2><div class="char-weapon" id="charEquippedTitle" style="display:none;"></div></div>
       <button class="btn ghost" id="btnCharBack">← Map</button>
     </div>
     <div class="char-hero-stage" id="charHeroStage">
@@ -878,13 +878,17 @@
 <div class="overlay" id="overlayExportSave">
   <div class="sheet" style="max-width:480px;position:relative;">
     <button class="close-x" id="btnCloseExport">✕</button>
-    <span class="eyebrow">Save Code</span>
+    <span class="eyebrow">Save Backup</span>
     <h2>Move to Another Device</h2>
-    <p style="font-size:.85rem;">Copy this code, then open Keycap Quest on the other device and use "Import Save Code" to bring this player's progress over.</p>
-    <textarea id="exportCodeBox" readonly style="width:100%;height:110px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
+    <p style="font-size:.85rem;">Download a save file, then bring that file to another device (a school Google Drive folder works great) and use "Import Save" → "Load File" there.</p>
+    <div class="btnrow" style="justify-content:center;margin:12px 0;">
+      <button class="btn" id="btnDownloadSave">💾 Download Save File</button>
+    </div>
+    <p style="font-size:.78rem;color:var(--ink-soft);margin-top:2px;">Prefer typing it in instead? Copy this code:</p>
+    <textarea id="exportCodeBox" readonly style="width:100%;height:80px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
     <p id="exportCopyStatus" style="font-size:.78rem;color:var(--good);min-height:1.2em;margin-top:4px;"></p>
     <div class="btnrow" style="justify-content:center;margin-top:10px;">
-      <button class="btn" id="btnCopyExportCode">📋 Copy Code</button>
+      <button class="btn ghost" id="btnCopyExportCode">📋 Copy Code</button>
       <button class="btn ghost" id="btnCloseExport2">Close</button>
     </div>
   </div>
@@ -894,14 +898,34 @@
 <div class="overlay" id="overlayImportSave">
   <div class="sheet" style="max-width:480px;position:relative;">
     <button class="close-x" id="btnCloseImport">✕</button>
-    <span class="eyebrow">Save Code</span>
+    <span class="eyebrow">Save Backup</span>
     <h2>Import From Another Device</h2>
-    <p style="font-size:.85rem;">Paste a save code exported from another device to bring that player's progress here.</p>
-    <textarea id="importCodeBox" placeholder="Paste code here..." style="width:100%;height:110px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
+    <p style="font-size:.85rem;">Load a save file that was downloaded from another device.</p>
+    <div class="btnrow" style="justify-content:center;margin:12px 0;">
+      <button class="btn" id="btnLoadSaveFile">📂 Load Save File</button>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+    </div>
+    <p style="font-size:.78rem;color:var(--ink-soft);margin-top:2px;">Or paste a save code instead:</p>
+    <textarea id="importCodeBox" placeholder="Paste code here..." style="width:100%;height:80px;font-family:var(--font-mono);font-size:.68rem;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--ink);resize:none;"></textarea>
     <p id="importStatus" style="font-size:.78rem;min-height:1.2em;margin-top:4px;"></p>
     <div class="btnrow" style="justify-content:center;margin-top:10px;">
-      <button class="btn" id="btnDoImport">⬇️ Import</button>
+      <button class="btn ghost" id="btnDoImport">⬇️ Import Code</button>
       <button class="btn ghost" id="btnCloseImport2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME PLAYER OVERLAY -->
+<div class="overlay" id="overlayRenamePlayer">
+  <div class="sheet" style="max-width:380px;position:relative;">
+    <button class="close-x" id="btnCloseRename">✕</button>
+    <span class="eyebrow">Character</span>
+    <h2>Change Your Name</h2>
+    <div class="field"><label for="renameNameInput">Name</label><input type="text" id="renameNameInput" maxlength="12" placeholder="Type a name..."></div>
+    <p id="renameStatus" style="font-size:.78rem;color:var(--bad);min-height:1.2em;margin-top:4px;"></p>
+    <div class="btnrow" style="justify-content:center;margin-top:10px;">
+      <button class="btn" id="btnDoRename">Save</button>
+      <button class="btn ghost" id="btnCloseRename2">Cancel</button>
     </div>
   </div>
 </div>
@@ -2120,9 +2144,33 @@ el('btnCreate').addEventListener('click',function(){
   DATA.players.push(p); DATA.lastPlayerId=p.id; saveData(); goToTutorial();
 });
 
-/* ================= SAVE CODE EXPORT / IMPORT =================
-   No backend -- a save code is just this one player's JSON, base64'd.
-   Copy it on one device, paste it into "Import Save Code" on another. */
+/* ================= RENAME PLAYER ================= */
+el('btnRenamePlayer').addEventListener('click',function(){
+  var p=getCurrentPlayer(); if(!p) return;
+  el('renameNameInput').value=p.name;
+  el('renameStatus').textContent='';
+  el('overlayRenamePlayer').classList.add('active');
+  el('renameNameInput').focus();
+});
+el('btnCloseRename').addEventListener('click',function(){ el('overlayRenamePlayer').classList.remove('active'); });
+el('btnCloseRename2').addEventListener('click',function(){ el('overlayRenamePlayer').classList.remove('active'); });
+el('btnDoRename').addEventListener('click',function(){
+  var p=getCurrentPlayer(); if(!p) return;
+  var name=el('renameNameInput').value.trim();
+  if(!name){ el('renameStatus').textContent='Type a name first.'; return; }
+  p.name=name.slice(0,12);
+  saveData();
+  el('overlayRenamePlayer').classList.remove('active');
+  refreshTopbar();
+  renderCharacterScreen();
+});
+el('renameNameInput').addEventListener('keydown',function(ev){ if(ev.key==='Enter') el('btnDoRename').click(); });
+
+/* ================= SAVE EXPORT / IMPORT =================
+   No backend -- a save is just this one player's JSON. It can be
+   downloaded as a .json file (drop it in a synced Drive/OneDrive folder
+   to carry it to another device) or, for typing it in by hand, copied
+   as a base64 code. Either way it's imported the same way. */
 function encodeSaveCode(obj){
   var json=JSON.stringify(obj);
   return btoa(unescape(encodeURIComponent(json)));
@@ -2131,13 +2179,30 @@ function decodeSaveCode(code){
   var json=decodeURIComponent(escape(atob(code.trim())));
   return JSON.parse(json);
 }
+function saveFileName(player){
+  var safeName=(player.name||'player').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  var date=new Date().toISOString().slice(0,10);
+  return 'keycapquest-save-'+(safeName||'player')+'-'+date+'.json';
+}
+var exportPlayerRef=null;
 function openExportSave(player){
+  exportPlayerRef=player;
   el('exportCodeBox').value=encodeSaveCode(player);
   el('exportCopyStatus').textContent='';
   el('overlayExportSave').classList.add('active');
 }
 el('btnCloseExport').addEventListener('click',function(){ el('overlayExportSave').classList.remove('active'); });
 el('btnCloseExport2').addEventListener('click',function(){ el('overlayExportSave').classList.remove('active'); });
+el('btnDownloadSave').addEventListener('click',function(){
+  if(!exportPlayerRef) return;
+  var json=JSON.stringify(exportPlayerRef,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download=saveFileName(exportPlayerRef);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
 el('btnCopyExportCode').addEventListener('click',function(){
   var box=el('exportCodeBox');
   box.select(); box.setSelectionRange(0,99999);
@@ -2153,19 +2218,14 @@ el('btnCopyExportCode').addEventListener('click',function(){
 });
 
 el('btnImportSave').addEventListener('click',function(){
-  el('importCodeBox').value=''; el('importStatus').textContent='';
+  el('importCodeBox').value=''; el('importStatus').textContent=''; el('importFileInput').value='';
   el('overlayImportSave').classList.add('active');
 });
 el('btnCloseImport').addEventListener('click',function(){ el('overlayImportSave').classList.remove('active'); });
 el('btnCloseImport2').addEventListener('click',function(){ el('overlayImportSave').classList.remove('active'); });
-el('btnDoImport').addEventListener('click',function(){
-  var status=el('importStatus');
-  var code=el('importCodeBox').value;
-  if(!code.trim()){ status.style.color='var(--bad)'; status.textContent='Paste a save code first.'; return; }
-  var player;
-  try{ player=decodeSaveCode(code); }catch(e){ player=null; }
+function applyImportedPlayer(player,status){
   if(!player || typeof player!=='object' || !player.id || !player.name){
-    status.style.color='var(--bad)'; status.textContent='That code doesn\'t look valid — check you copied the whole thing.';
+    status.style.color='var(--bad)'; status.textContent='That save doesn\'t look valid.';
     return;
   }
   var existingIdx=DATA.players.findIndex(function(p){return p.id===player.id;});
@@ -2179,6 +2239,30 @@ el('btnDoImport').addEventListener('click',function(){
   saveData();
   el('overlayImportSave').classList.remove('active');
   renderProfiles();
+}
+el('btnDoImport').addEventListener('click',function(){
+  var status=el('importStatus');
+  var code=el('importCodeBox').value;
+  if(!code.trim()){ status.style.color='var(--bad)'; status.textContent='Paste a save code first.'; return; }
+  var player;
+  try{ player=decodeSaveCode(code); }catch(e){ player=null; }
+  if(!player){ status.style.color='var(--bad)'; status.textContent='That code doesn\'t look valid — check you copied the whole thing.'; return; }
+  applyImportedPlayer(player,status);
+});
+el('btnLoadSaveFile').addEventListener('click',function(){ el('importFileInput').click(); });
+el('importFileInput').addEventListener('change',function(){
+  var status=el('importStatus');
+  var file=this.files && this.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    var player;
+    try{ player=JSON.parse(reader.result); }catch(e){ player=null; }
+    if(!player){ status.style.color='var(--bad)'; status.textContent='That file doesn\'t look like a Keycap Quest save.'; return; }
+    applyImportedPlayer(player,status);
+  };
+  reader.onerror=function(){ status.style.color='var(--bad)'; status.textContent='Couldn\'t read that file.'; };
+  reader.readAsText(file);
 });
 
 /* ================= FEEDBACK =================
