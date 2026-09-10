@@ -3565,7 +3565,7 @@ function onKeydown(e){
         spawnPlayerHit(penalty); updateArena();
         if(playState.tug<=0 && !tryRevive()){ finishLevel('loss'); return; }
       } else {
-        var hpCost=Math.max(1,Math.round(playState.worldMult*(1-playState.power.mistakeResist)));
+        var hpCost=1;
         playState.playerHp=Math.max(0,playState.playerHp-hpCost);
         spawnPlayerHit(hpCost); updateArena();
         if(playState.playerHp<=0){ updateHud(); finishLevel('loss'); return; }
