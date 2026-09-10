@@ -35,6 +35,18 @@ Going forward:
   a single user request produces several independent changes (e.g. "add
   X, Y, and Z"), that's several commits, not one commit with three
   paragraphs in the message.
+- **As soon as a chunk of work is done and verified (tests green, no
+  open questions), open its PR and proactively propose merging it right
+  then** — don't wait to be asked, and don't just move on to the next
+  request while it sits open. Say plainly: "this is done and mergeable,
+  want me to merge it?" A yes here should be a one-word reply, not a
+  separate ask the user has to remember to make. This is the actual fix
+  for the long-lived-PR problem: it happened because the merge
+  conversation kept getting skipped, not because merging itself was hard.
+- **Once merged, start the next unrelated chunk of work from a fresh
+  branch off the updated `main`**, not more commits on the just-merged
+  branch — ask for permission to push to a new branch name if the
+  session's designated branch is fixed.
 - **Before ending a work session, flag PR state out loud**: is this PR
   done and mergeable, or genuinely still in progress? Don't let size be
   the only signal — a PR can be small and still done, or large and still
