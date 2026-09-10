@@ -452,6 +452,7 @@
       <button class="iconbtn" id="btnPoppins" title="Bonus: Mary Poppins">☂️</button>
       <button class="iconbtn" id="btnBadges" title="Badges">🏅</button>
       <button class="iconbtn" id="btnFeedback" title="Send Feedback">💬</button>
+      <button class="iconbtn" id="btnAbout" title="About the Creator">🙋</button>
       <button class="iconbtn" id="btnSound" title="Toggle sound">🔊</button>
       <div class="player-pill" id="playerPill">
         <div class="portrait" id="pillAv"></div>
@@ -957,6 +958,21 @@
     <div class="btnrow" style="justify-content:center;margin-top:10px;">
       <button class="btn" id="btnSendFeedback">📧 Open Email &amp; Send</button>
       <button class="btn ghost" id="btnCloseFeedback2">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT OVERLAY -->
+<div class="overlay" id="overlayAbout">
+  <div class="sheet" style="max-width:440px;position:relative;">
+    <button class="close-x" id="btnCloseAbout">✕</button>
+    <span class="eyebrow">Meet the Maker</span>
+    <h2>Hi, I'm Harvey! 👋</h2>
+    <p style="font-size:.9rem;line-height:1.5;">I'm a kid who's traveled all over the world, and if there's one thing I love, it's connecting with people wherever I go. I built Keycap Quest so kids everywhere could have a fun way to learn to type -- connecting people to keyboards, one adventure at a time!</p>
+    <p style="font-size:.85rem;line-height:1.5;">If you're enjoying the game, you can send me a little something to say thanks 🍭</p>
+    <div class="btnrow" style="justify-content:center;margin-top:14px;">
+      <a class="btn" href="https://www.paypal.me/VincentSmits792" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-block;">🍭 Donate a Lolly</a>
+      <button class="btn ghost" id="btnCloseAbout2">Close</button>
     </div>
   </div>
 </div>
@@ -2278,6 +2294,9 @@ el('btnFeedback').addEventListener('click',function(){
 });
 el('btnCloseFeedback').addEventListener('click',function(){ el('overlayFeedback').classList.remove('active'); });
 el('btnCloseFeedback2').addEventListener('click',function(){ el('overlayFeedback').classList.remove('active'); });
+el('btnAbout').addEventListener('click',function(){ el('overlayAbout').classList.add('active'); });
+el('btnCloseAbout').addEventListener('click',function(){ el('overlayAbout').classList.remove('active'); });
+el('btnCloseAbout2').addEventListener('click',function(){ el('overlayAbout').classList.remove('active'); });
 el('btnSendFeedback').addEventListener('click',function(){
   var status=el('feedbackStatus');
   var type=el('feedbackType').value;
