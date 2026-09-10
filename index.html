@@ -226,6 +226,8 @@
   .node .stars{margin-top:4px;font-size:.85rem;letter-spacing:1px;color:var(--f-middle);}
   .node.locked{opacity:.5;cursor:default;filter:grayscale(.6);}
   .node.locked .lock{font-size:1.4rem;}
+  .node.jump-highlight{animation:jumpPulse 1.5s ease;}
+  @keyframes jumpPulse{0%,100%{box-shadow:var(--key-shadow);}20%,60%{box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 45%, transparent), var(--key-shadow);}}
 
   .stage-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:20px;}
   .stage-card{flex:1;min-width:170px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 14px;text-align:center;box-shadow:var(--key-shadow);cursor:pointer;}
@@ -487,6 +489,7 @@
     <span class="eyebrow">World Map</span>
     <h1 class="hero-title">Climb the keyboard</h1>
     <p class="hero-sub">A hundred worlds across nine lands, three stages each: Practice, Skirmish, and a Boss Fight. Defeat bosses for gold, gems, and glory.</p>
+    <div class="btnrow"><button class="btn ghost" id="btnJumpCurrent">🎯 Jump to Current Level</button></div>
     <div class="path" id="mapPath"></div>
   </section>
 
@@ -2321,6 +2324,17 @@ function isWorldUnlocked(player,worldId){
   var prevBoss=getSub(player,worldId-1,'boss');
   return !!(prevBoss && prevBoss.passed);
 }
+// The frontier world: the earliest one whose boss isn't beaten yet (passing
+// a world's boss is what unlocks the next one, so this is also the
+// furthest-reached world). Falls back to the last world once everything's
+// cleared, so the jump button still has somewhere to send you.
+function nextIncompleteWorldId(player){
+  for(var i=0;i<LEVELS.length;i++){
+    var boss=getSub(player,LEVELS[i].id,'boss');
+    if(!boss||!boss.passed) return LEVELS[i].id;
+  }
+  return LEVELS[LEVELS.length-1].id;
+}
 function goToMap(){
   var p=getCurrentPlayer();
   if(!p){ showScreen('profiles'); renderProfiles(); return; }
@@ -2358,7 +2372,7 @@ function renderMap(){
     var row=document.createElement('div'); row.className='node-row '+(i%2===0?'l':'r');
     var bossProg=getSub(p,level.id,'boss');
     var stars=bossProg?bossProg.stars:0;
-    var node=document.createElement('div'); node.className='card node'+(unlocked?'':' locked'); node.tabIndex=0;
+    var node=document.createElement('div'); node.className='card node'+(unlocked?'':' locked'); node.tabIndex=0; node.id='node-'+level.id;
     if(!unlocked){
       node.innerHTML='<div class="num">WORLD '+level.id+'</div><div class="lock">🔒</div><div class="lt">'+escapeHtml(level.title)+'</div>';
     } else {
@@ -3565,7 +3579,7 @@ function onKeydown(e){
         spawnPlayerHit(penalty); updateArena();
         if(playState.tug<=0 && !tryRevive()){ finishLevel('loss'); return; }
       } else {
-        var hpCost=Math.max(1,Math.round(playState.worldMult*(1-playState.power.mistakeResist)));
+        var hpCost=1;
         playState.playerHp=Math.max(0,playState.playerHp-hpCost);
         spawnPlayerHit(hpCost); updateArena();
         if(playState.playerHp<=0){ updateHud(); finishLevel('loss'); return; }
@@ -3864,6 +3878,14 @@ function setDifficulty(id){
   var diff=currentDifficulty(p);
   var wd=el('wdDifficulty'); if(wd) wd.textContent=diff.emoji+' '+diff.name;
 }
+el('btnJumpCurrent').addEventListener('click',function(){
+  var p=getCurrentPlayer(); if(!p) return;
+  var node=el('node-'+nextIncompleteWorldId(p));
+  if(!node) return;
+  node.scrollIntoView({behavior:'smooth',block:'center'});
+  node.classList.add('jump-highlight');
+  setTimeout(function(){ node.classList.remove('jump-highlight'); },1500);
+});
 el('btnDifficulty').addEventListener('click',function(){ renderDifficultyOverlay(); el('overlayDifficulty').classList.add('active'); });
 el('btnWdDifficulty').addEventListener('click',function(){ renderDifficultyOverlay(); el('overlayDifficulty').classList.add('active'); });
 el('btnCloseDifficulty').addEventListener('click',function(){ el('overlayDifficulty').classList.remove('active'); });
